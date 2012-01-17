@@ -1,0 +1,5 @@
+; $Id: onlinerecord $
+core = 6.x
+name = onlinerecord
+description = "To record priem"
+version = "6.x-0.1"
