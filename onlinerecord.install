@@ -1,0 +1,247 @@
+<?php
+function onlinerecord_schema() {
+    
+    $schema['onlinerecord_organizations'] = array(
+    'description' => 'Table of organizations.',
+    'fields' => array(
+      'org_id' => array(
+        'description' => 'The Organization id.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      'name' => array(
+        'description' => 'The human-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      ),
+    'primary key' => array('org_id'),
+    );
+    
+    $schema['onlinerecord_departments'] = array(
+    'description' => 'Table of organizations.',
+    'fields' => array(
+      'dept_id' => array(
+        'description' => 'The department of organization id.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      'name' => array(
+        'description' => 'The human-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'org_id' => array(
+        'description' => 'The Organization id FK.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+        
+      ),
+    'primary key' => array('dept_id'),
+        
+    );
+    
+   
+    $schema['onlinerecord_plans'] = array(
+    'description' => 'Table of plans.',
+    'fields' => array(
+      'plan_id' => array(
+        'description' => 'The department of organization id.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      'name' => array(
+        'description' => 'The human-readable name of this type.',
+        'type' => 'varchar',
+        'length' => 45,
+        'not null' => TRUE,
+        'default' => ''),
+      'kvant_value' => array(
+        'description' => 'Length of time period.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      'worktimestart' => array(
+        'description' => 'WorkTime Start.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      'worktimefinsh' => array(
+        'description' => 'WorkTime Stop.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      'dept_id' => array(
+        'description' => 'Reference to Department of organization.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      ),
+    'primary key' => array('plan_id'),
+    );
+    
+    $schema['onlinerecord_records'] = array(
+    'description' => 'Table of plans.',
+    'fields' => array(
+      'rec_id' => array(
+        'description' => 'Record id - main table',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      'name' => array(
+        'description' => 'The name of user ',
+        'type' => 'varchar',
+        'length' => 80,
+        'not null' => TRUE,
+        'default' => ''),
+      'kvant_value' => array(
+        'description' => 'Length of time period.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      'worktimestart' => array(
+        'description' => 'WorkTime Start.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      'worktimefinsh' => array(
+        'description' => 'WorkTime Stop.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      'dept_id' => array(
+        'description' => 'Reference to Department of organization.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      ),
+    'primary key' => array('plan_id'),
+        
+    );
+
+    
+    
+    $schema['onlinerecord_doctype'] = array(
+    'description' => t('DocType'),
+    'fields' => array(
+      'id' => array(
+        'description' => t('Node identifier for notification'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        ),
+      'doctype_id' => array(
+        'description' => t('Node identifier for notification'),
+        'type' => 'varchar',
+        'length' => '8',
+        'not null' => TRUE,
+        ),
+      ),
+    'primary key' => array('id', 'doctype_id'),
+    'indexes' => array(
+      'id' => array('id', 'doctype_id'),
+      ),
+    );
+	
+  $schema['onlinerecord_status'] = array(
+    'description' => t('FAQ node to asker mapping.'),
+    'fields' => array(
+	
+      'id' => array(
+        'description' => t('Node identifier for notification'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        ),
+	  'child_id' => array(
+        'description' => t('Node identifier for notification'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        ),
+	  'parent_id' => array(
+        'description' => t('Node identifier for notification'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        ),
+		
+	  'document_docno' => array(
+        'description' => t('Node identifier for notification'),
+        'type' => 'varchar', 
+		'length' => '9',
+        'not null' => TRUE,
+        ),
+	  'doctype' => array(
+        'description' => t('Node identifier for notification'),
+        'type' => 'varchar', 
+		'length' => '8',
+        'not null' => TRUE,
+        ),
+	  'document_status' => array(
+        'description' => t('Node identifier for notification'),
+        'type' => 'int',
+        'unsigned' => TRUE,
+        ),
+		
+	  'document_regdate' => array(
+        'description' => t('Node identifier for notification'),
+        'type' => 'datetime',
+        ),
+		
+	  'deldate' => array(
+        'description' => t('Node identifier for notification'),
+        'type' => 'datetime',
+        ),
+		
+      ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'id' => array('id',' document_docno','document_status'),
+      ),
+	  
+    );
+	
+  return $schema;
+}
+
+/**
+  `ID` int(11) NOT NULL,
+  `child_id` int(11) DEFAULT NULL,
+  `Parent_ID` int(11) DEFAULT NULL,
+  
+  `Document_DocNo` varchar(9) DEFAULT NULL,
+  `DocType` varchar(8) DEFAULT NULL,
+  
+  `Document_Status` int(11) DEFAULT NULL,
+  `Document_RegDate` date DEFAULT NULL,
+  `DelDate` date DEFAULT NULL,
+
+ * Implementation of hook_install().
+ */
+function onlinerecord_install() {
+  $result = drupal_install_schema('onlinerecord');
+
+  if (count($result) > 0) {
+    drupal_set_message(st('onlinerecord module installed.'));
+  }
+  else {
+    drupal_set_message(st('onlinerecord table creation failed. Please "uninstall" the module and retry.'));
+  }
+}
+
+/**
+ * Implementation of hook_update_N().
+ */
+
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function onlinerecord_uninstall() {
+  drupal_uninstall_schema('onlinerecord');
+
+  drupal_set_message(st('onlinerecord module uninstalled.'));
+}
+?>
