@@ -2,4 +2,6 @@
 core = 6.x
 name = onlinerecord
 description = "To record priem"
-version = "6.x-0.1"
+dependencies[]=date_api
+dependencies[]=date_timezone
+version = "6.x-0.2"

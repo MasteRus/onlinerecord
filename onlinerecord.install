@@ -84,7 +84,7 @@ function onlinerecord_schema() {
     );
     
     $schema['onlinerecord_records'] = array(
-    'description' => 'Table of plans.',
+    'description' => 'Table of records.',
     'fields' => array(
       'rec_id' => array(
         'description' => 'Record id - main table',
@@ -118,90 +118,11 @@ function onlinerecord_schema() {
         'not null' => TRUE,
         'default' => 0),
       ),
-    'primary key' => array('plan_id'),
+    'primary key' => array('rec_id'),
         
     );
 
     
-    
-    $schema['onlinerecord_doctype'] = array(
-    'description' => t('DocType'),
-    'fields' => array(
-      'id' => array(
-        'description' => t('Node identifier for notification'),
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        ),
-      'doctype_id' => array(
-        'description' => t('Node identifier for notification'),
-        'type' => 'varchar',
-        'length' => '8',
-        'not null' => TRUE,
-        ),
-      ),
-    'primary key' => array('id', 'doctype_id'),
-    'indexes' => array(
-      'id' => array('id', 'doctype_id'),
-      ),
-    );
-	
-  $schema['onlinerecord_status'] = array(
-    'description' => t('FAQ node to asker mapping.'),
-    'fields' => array(
-	
-      'id' => array(
-        'description' => t('Node identifier for notification'),
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        ),
-	  'child_id' => array(
-        'description' => t('Node identifier for notification'),
-        'type' => 'int',
-        'unsigned' => TRUE,
-        ),
-	  'parent_id' => array(
-        'description' => t('Node identifier for notification'),
-        'type' => 'int',
-        'unsigned' => TRUE,
-        ),
-		
-	  'document_docno' => array(
-        'description' => t('Node identifier for notification'),
-        'type' => 'varchar', 
-		'length' => '9',
-        'not null' => TRUE,
-        ),
-	  'doctype' => array(
-        'description' => t('Node identifier for notification'),
-        'type' => 'varchar', 
-		'length' => '8',
-        'not null' => TRUE,
-        ),
-	  'document_status' => array(
-        'description' => t('Node identifier for notification'),
-        'type' => 'int',
-        'unsigned' => TRUE,
-        ),
-		
-	  'document_regdate' => array(
-        'description' => t('Node identifier for notification'),
-        'type' => 'datetime',
-        ),
-		
-	  'deldate' => array(
-        'description' => t('Node identifier for notification'),
-        'type' => 'datetime',
-        ),
-		
-      ),
-    'primary key' => array('id'),
-    'indexes' => array(
-      'id' => array('id',' document_docno','document_status'),
-      ),
-	  
-    );
 	
   return $schema;
 }
