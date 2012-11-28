@@ -6,9 +6,9 @@ function onlinerecord_schema() {
     'fields' => array(
       'org_id' => array(
         'description' => 'The Organization id.',
-        'type' => 'int',
+        'type' => 'serial',
         'not null' => TRUE,
-        'default' => 0),
+        ),
       'name' => array(
         'description' => 'The human-readable name of this type.',
         'type' => 'varchar',
@@ -24,9 +24,9 @@ function onlinerecord_schema() {
     'fields' => array(
       'dept_id' => array(
         'description' => 'The department of organization id.',
-        'type' => 'int',
+        'type' => 'serial',
         'not null' => TRUE,
-        'default' => 0),
+        ),
       'name' => array(
         'description' => 'The human-readable name of this type.',
         'type' => 'varchar',
@@ -50,9 +50,9 @@ function onlinerecord_schema() {
     'fields' => array(
       'plan_id' => array(
         'description' => 'The department of organization id.',
-        'type' => 'int',
+        'type' => 'serial',
         'not null' => TRUE,
-        'default' => 0),
+        ),
       'name' => array(
         'description' => 'The human-readable name of this type.',
         'type' => 'varchar',
@@ -69,7 +69,7 @@ function onlinerecord_schema() {
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0),
-      'worktimefinsh' => array(
+      'worktimefinish' => array(
         'description' => 'WorkTime Stop.',
         'type' => 'int',
         'not null' => TRUE,
@@ -88,9 +88,9 @@ function onlinerecord_schema() {
     'fields' => array(
       'rec_id' => array(
         'description' => 'Record id - main table',
-        'type' => 'int',
+        'type' => 'serial',
         'not null' => TRUE,
-        'default' => 0),
+        ),
       'name' => array(
         'description' => 'The name of user ',
         'type' => 'varchar',
