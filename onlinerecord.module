@@ -1,0 +1,232 @@
+<?php
+// $Id$ 
+
+/*
+function onlinerecord_perm() {
+  return array('can');
+}
+ *
+ */
+
+
+function onlinerecord_menu()
+{
+  //@TODO @REFACTOR We need to change arg(n) calls in functions foo()
+  //  to
+  //function foo(n)
+    $items=array();
+
+    //Add main onlinerrecord settings pages
+    $items['admin/settings/onlinerecord'] = array(
+      'title' => 'OnlineRecord',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_form'),
+      'access arguments' => array('access content'),
+      'type' => MENU_NORMAL_ITEM,
+    );
+
+    /////////////////////////// Organizations //////////////////////////////////
+    //Add orgs main page
+    $items['admin/settings/onlinerecord/orgs'] = array(
+      'title' => 'OnlineRecord organizations',
+      //'page callback' => 'drupal_get_form',
+      //'page arguments' => array('onlinerecord_organizations_list'),
+      'page callback' =>  'onlinerecord_orgs_list',
+      'access arguments' => array('access content'),
+      'type' => MENU_NORMAL_ITEM,
+      'file' => 'onlinerecord.admin.inc'
+    );
+
+    //Add orgs add-page
+    $items['admin/settings/onlinerecord/orgs/add'] = array(
+      'title' => 'Add organization',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_orgs_form_add'),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc',
+    );
+
+    //Add orgs edit-page
+    $items['admin/settings/onlinerecord/orgs/%/edit'] = array(
+      'title' => 'Edit organization',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_orgs_form_edit',4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      // 'type' => MENU_NORMAL_ITEM,
+      'file' => 'onlinerecord.admin.inc',
+    );
+      
+    //Add orgs delete-page
+    $items['admin/settings/onlinerecord/orgs/%/delete'] = array(
+      'title' => 'Delete organization',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_orgs_form_delete_confirm',4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc',
+      
+    );
+
+    /////////////////////////// Departments ////////////////////////////////////
+    //Add depts main page
+    $items['admin/settings/onlinerecord/depts'] = array(
+      'title' => 'OnlineRecord departments',
+      //'page callback' => 'drupal_get_form',
+      //'page arguments' => array('onlinerecord_organizations_list'),
+      'page callback' =>  'onlinerecord_depts_list',
+      'access arguments' => array('access content'),
+      'type' => MENU_NORMAL_ITEM,
+      'file' => 'onlinerecord.admin.inc'
+    );
+
+    //Add depts add-page
+    $items['admin/settings/onlinerecord/depts/add'] = array(
+      'title' => 'Add department',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_depts_form_add'),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc',
+    );
+
+    //Add depts edit-page
+    $items['admin/settings/onlinerecord/depts/%/edit'] = array(
+      'title' => 'Edit department',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_depts_form_edit',4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      // 'type' => MENU_NORMAL_ITEM,
+      'file' => 'onlinerecord.admin.inc',
+    );
+
+    //Add depts delete-page
+    $items['admin/settings/onlinerecord/depts/%/delete'] = array(
+      'title' => 'Delete department',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_depts_form_delete_confirm',4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc',
+
+    );
+    //
+
+    ////////////////////////////// Plans ///////////////////////////////////////
+    //Add depts main page
+    $items['admin/settings/onlinerecord/plans'] = array(
+      'title' => 'OnlineRecord Plans',
+      //'page callback' => 'drupal_get_form',
+      //'page arguments' => array('onlinerecord_organizations_list'),
+      'page callback' =>  'onlinerecord_plans_list',
+      'access arguments' => array('access content'),
+      'type' => MENU_NORMAL_ITEM,
+      'file' => 'onlinerecord.admin.inc'
+    );
+
+    //Add depts add-page
+    $items['admin/settings/onlinerecord/plans/add'] = array(
+      'title' => 'Add plan',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_plans_form_add'),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc',
+    );
+
+    //Add depts edit-page
+    $items['admin/settings/onlinerecord/plans/%/edit'] = array(
+      'title' => 'Edit plan',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_plans_form_edit',4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      // 'type' => MENU_NORMAL_ITEM,
+      'file' => 'onlinerecord.admin.inc',
+    );
+
+    //Add depts delete-page
+    $items['admin/settings/onlinerecord/plans/%/delete'] = array(
+      'title' => 'Delete plan',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_plans_form_delete_confirm',4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc',
+
+    );
+  
+    //////////////////////////// Exceptions ////////////////////////////////////
+    //Add depts main page
+    $items['admin/settings/onlinerecord/plans/%/exceptions'] = array(
+      'title' => 'Exceptions1',
+      //'page callback' => 'drupal_get_form',
+      //'page arguments' => array('onlinerecord_exceptions_per_plan_list',4),
+      //'page callback' =>  'onlinerecord_plans_list',
+      'page callback' =>  'onlinerecord_exceptions_per_plan_list',
+      'page arguments' => array(4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc'
+    );
+
+    $items['admin/settings/onlinerecord/plans/%/exceptions/add'] = array(
+      'title' => 'Add exception',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_exceptions_per_plan_add',4),
+      //'page callback' =>  'onlinerecord_exceptions_per_plan_add',
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc'
+    );
+
+    $items['admin/settings/onlinerecord/exceptions'] = array(
+      'title' => 'Exceptions1',
+      //'page callback' => 'drupal_get_form',
+      //'page arguments' => array('onlinerecord_exceptions_per_plan_list',4),
+      //'page callback' =>  'onlinerecord_plans_list',
+      'page callback' =>  'onlinerecord_exceptions_list',
+      'page arguments' => array(4),
+      'access arguments' => array('access content'),
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc'
+    );
+
+
+
+
+
+
+    $items['admin/settings/onlinerecord/exceptions/%/delete'] = array(
+      'title' => 'Delete exception',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_exceptions_form_delete_confirm',4),
+      //'page callback' =>  'onlinerecord_exceptions_per_plan_delete',
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc'
+    );
+
+    return $items;
+
+
+}
+
+function onlinerecord_form(&$form_state)
+{
+    $form['links_fieldset'] = array(
+      '#title' => t("links"),
+      // The prefix/suffix provide the div that we're replacing, named by
+      // #ajax['wrapper'] above.
+      '#prefix' => '<div id="links-div">',
+      '#suffix' => '</div>',
+      '#type' => 'fieldset',
+      '#description' => t('This is where we get automatically Load/generate textfields'),
+    );
+
+return $form;
+}
+
+?>
