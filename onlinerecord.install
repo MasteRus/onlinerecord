@@ -118,11 +118,65 @@ function onlinerecord_schema() {
         'not null' => TRUE,
         'default' => 0),
       ),
+      'enabled_date' => array(
+        'description' => 'Date when plan starts working',
+        'type' => 'datetime',
+        //'not null' => TRUE,
+        'default' => 0),
+      'disabled_date' => array(
+        'description' => 'Date when plan stops working',
+        'type' => 'datetime',
+        //'not null' => TRUE,
+        'default' => 0),
     'primary key' => array('rec_id'),
         
     );
 
-    
+    $schema['onlinerecord_exceptions'] = array(
+    'description' => 'Table of records.',
+    'fields' => array(
+      'except_id' => array(
+        'description' => 'Record id - main table',
+        'type' => 'serial',
+        'not null' => TRUE,
+        ),
+      'plan_id' => array(
+        'description' => 'Plan ',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      'type' => array(
+        'description' => 'Type of exception 1-everyday, 2-everyweek, 3-everymonth, 4-everyyear, 5 custom date',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+
+      'daynumber' => array(
+        'description' => 'Type of exception 1-everyday, 2-everyweek, 3-everymonth, 4-everyyear, 5 custom date',
+        'type' => 'int',
+        //'not null' => TRUE,
+        'default' => 0),
+      
+      'dateofexcept' => array(
+        'description' => 'Date for type 4,5',
+        'type' => 'datetime',
+        //'not null' => TRUE,
+        'default' => 0),
+
+      'time_start' => array(
+        'description' => 'Length of time period.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      'time_stop' => array(
+        'description' => 'Length of time period.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0),
+      ),
+    'primary key' => array('except_id'),
+
+    );
 	
   return $schema;
 }

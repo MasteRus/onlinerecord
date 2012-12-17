@@ -179,7 +179,8 @@ function onlinerecord_menu()
       //'page callback' =>  'onlinerecord_exceptions_per_plan_add',
       'access arguments' => array('access content'),
       'type' => MENU_LOCAL_TASK,
-      'file' => 'onlinerecord.admin.inc'
+      'file' => 'onlinerecord.admin.inc',
+      'weight' => -10
     );
 
     $items['admin/settings/onlinerecord/exceptions'] = array(
@@ -194,10 +195,16 @@ function onlinerecord_menu()
       'file' => 'onlinerecord.admin.inc'
     );
 
-
-
-
-
+    $items['admin/settings/onlinerecord/exceptions/%/edit'] = array(
+      'title' => 'Edit exception',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_exceptions_per_plan_edit',4),
+      //'page callback' =>  'onlinerecord_exceptions_per_plan_add',
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc',
+      'weight' => -5
+    );
 
     $items['admin/settings/onlinerecord/exceptions/%/delete'] = array(
       'title' => 'Delete exception',
@@ -206,7 +213,8 @@ function onlinerecord_menu()
       //'page callback' =>  'onlinerecord_exceptions_per_plan_delete',
       'access arguments' => array('access content'),
       'type' => MENU_LOCAL_TASK,
-      'file' => 'onlinerecord.admin.inc'
+      'file' => 'onlinerecord.admin.inc',
+      'weight' => 0
     );
 
     return $items;
