@@ -415,54 +415,52 @@ function onlinerecord_plans_form_add_submit($form, &$form_state)
 function onlinerecord_plans_form_edit(&$form_state)
 {
   $arg=check_plain(arg(4));
-  $result=db_query('SELECT plan_id, dept_id, name, kvant_value, worktimestart, worktimefinish
-       FROM {onlinerecord_plans} where plan_id=%d',$arg);
+  $result=db_query('SELECT plan_id, dept_id, name, kvant_value, worktimestart, worktimefinish, enabled_date, disabled_date
+    FROM {onlinerecord_plans} where plan_id=%d',$arg);
   $plan=db_fetch_array($result) ;
 
-  
   if ($plan['name']!='')
   {
-
     $result=db_query('Select d.dept_id, d.name as dname, o.name AS oname FROM {onlinerecord_organizations} o, {onlinerecord_departments} d
-   WHERE d.org_id=o.org_id');
+    WHERE d.org_id=o.org_id');
 
-   $orgs=array();
-   $orgs[0]='---';
-   $i=0;
-   while ($org=db_fetch_array($result)) {
+    $orgs=array();
+    $orgs[0]='---';
+    $i=0;
+    while ($org=db_fetch_array($result)) {
       $i=intval($org['dept_id']);
       $orgs[$i]=$org['oname'].'|'.$org['dname'];
-   }
+    }
 
     // id-value
-   $form['plan_id']=array(
-     '#type' => 'value',
-     '#value' => $arg,
-   );
+    $form['plan_id']=array(
+      '#type' => 'value',
+      '#value' => $arg,
+    );
 
-   $form['parent_dept_id'] = array(
+    $form['parent_dept_id'] = array(
       '#title' => t('Select your place'),
       '#type' => 'select',
       '#options' => $orgs,
       '#default_value' => $plan['dept_id'],
-   );
+    );
 
-   $form['plan_name']= array(
+    $form['plan_name']= array(
       '#title' => t('Insert Plan name'),
       '#type' => 'textfield',
       '#default_value' => $plan['name'],
     );
 
    //$values=array(4,5,6,8,10,15,20,30);
-   $values=array(4=>4,5=>5,6=>6,8=>8,10=>10,15=>15,20=>20,30=>30);
-   $form['kvant'] = array(
+    $values=array(4=>4,5=>5,6=>6,8=>8,10=>10,15=>15,20=>20,30=>30);
+    $form['kvant'] = array(
       '#title' => t('Select your place'),
       '#type' => 'select',
       '#options' => $values,
       '#default_value' => $plan['kvant_value'],
-   );
+    );
 
-   $form['worktimestart'] = array(
+    $form['worktimestart'] = array(
       '#title' => t('Start time'),
       '#type' => 'textfield',
       '#default_value' =>$plan['worktimestart'],
@@ -473,10 +471,32 @@ function onlinerecord_plans_form_edit(&$form_state)
       '#type' => 'textfield',
       '#default_value' => $plan['worktimefinish'],
    );
+   $dateformat='Y-m-d';
+   $datef1=$plan['enabled_date'];
+   $datef2=$plan['disabled_date'];
+   $form['enabled_date'] = array(
+      '#title' => t('Enabled on'),
+      '#type' => 'date_select',
+      '#default_value' => $datef1,
+      '#date_format' => $dateformat,
+      '#date_timezone' => 'Asia/Novosibirsk',
+      '#date_increment' => $kvant_value,
+      '#date_year_range' => '0:+1',
+   );
+
+   $form['disabled_date'] = array(
+      '#title' => t('Disabled on'),
+      '#type' => 'date_select',
+      '#default_value' => $datef2,
+      '#date_format' => $dateformat,
+      '#date_timezone' => 'Asia/Novosibirsk',
+      '#date_increment' => $kvant_value,
+      '#date_year_range' => '0:+1',
+   );
 
    $form['submit'] = array(
         '#type' => 'submit',
-        '#value' => t('Add'),
+        '#value' => t('Edit'),
     );
   }
   else {$form=drupal_get_form('onlinerecord_depts_list');}
@@ -486,7 +506,9 @@ function onlinerecord_plans_form_edit(&$form_state)
 function onlinerecord_plans_form_edit_validate($form, &$form_state)
 {
    $edate=$form_state['values']['enabled_date'];
+   //dpm($edate);
    $ddate=$form_state['values']['disabled_date'];
+   //dpm($ddate);
    //Check dates beetween
    if (strtotime($edate)>strtotime($ddate))
      form_set_error('disabled_date',t('Disabled date should be after Enabled date'));
@@ -502,14 +524,21 @@ function onlinerecord_plans_form_edit_submit($form, &$form_state)
     $wtf=intval($form_state['values']['worktimefinish']);
 
     $edate=$form_state['values']['enabled_date'];
+    $dateformat='Y-m-d';
+    $datef1=strtotime($edate);
+    dpm($datef1);
+    dpm($edate);
     $ddate=$form_state['values']['disabled_date'];
+    $datef2=strtotime($ddate);
+    dpm($datef2);
+    dpm($ddate);
 
     $plan_id=$form_state['values']['parent_dept_id'];
 
-    $result=db_query("UPDATE {onlinerecord_plans} SET name='%s', dept_id=%d, kvant_value=%d, worktimestart=%d, worktimefinish=%d
+    $result=db_query("UPDATE {onlinerecord_plans} SET name='%s', dept_id=%d, kvant_value=%d, worktimestart=%d, worktimefinish=%d, enabled_date=%d, disabled_date=%d
     WHERE plan_id=%d",
     $name,$dept_id,$kvant,$wts,$wtf,
-    $plan_id);
+    $plan_id,$datef1,$datef2);
 
 }
 
@@ -953,6 +982,7 @@ function onlinerecord_exceptions_add_submit($form, &$form_state)
 
 function onlinerecord_exceptions_edit(&$form_state)
 {
+   drupal_set_message('onlinerecord_exceptions_edit','message');
    $arg=check_plain(arg(4));
    $result=db_query('SELECT e.type, e.daynumber, e.dateofexcept, e.time_start, e.time_stop,
     p.kvant_value, p.worktimestart, p.worktimefinish FROM {onlinerecord_plans} p, {onlinerecord_exceptions} e

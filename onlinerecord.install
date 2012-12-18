@@ -79,6 +79,17 @@ function onlinerecord_schema() {
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0),
+      'enabled_date' => array(
+        'description' => 'Date when plan starts working',
+        'type' => 'datetime',
+        //'not null' => TRUE,
+        'default' => 0),
+      'disabled_date' => array(
+        'description' => 'Date when plan stops working',
+        'type' => 'datetime',
+        //'not null' => TRUE,
+        'default' => 0),
+
       ),
     'primary key' => array('plan_id'),
     );
@@ -118,16 +129,6 @@ function onlinerecord_schema() {
         'not null' => TRUE,
         'default' => 0),
       ),
-      'enabled_date' => array(
-        'description' => 'Date when plan starts working',
-        'type' => 'datetime',
-        //'not null' => TRUE,
-        'default' => 0),
-      'disabled_date' => array(
-        'description' => 'Date when plan stops working',
-        'type' => 'datetime',
-        //'not null' => TRUE,
-        'default' => 0),
     'primary key' => array('rec_id'),
         
     );
