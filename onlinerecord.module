@@ -198,7 +198,7 @@ function onlinerecord_menu()
     $items['admin/settings/onlinerecord/exceptions/%/edit'] = array(
       'title' => 'Edit exception',
       'page callback' => 'drupal_get_form',
-      'page arguments' => array('onlinerecord_exceptions_per_plan_edit',4),
+      'page arguments' => array('onlinerecord_exceptions_edit',4),
       //'page callback' =>  'onlinerecord_exceptions_per_plan_add',
       'access arguments' => array('access content'),
       'type' => MENU_LOCAL_TASK,

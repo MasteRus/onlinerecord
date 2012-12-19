@@ -81,12 +81,12 @@ function onlinerecord_schema() {
         'default' => 0),
       'enabled_date' => array(
         'description' => 'Date when plan starts working',
-        'type' => 'datetime',
+        'type' => 'int',
         //'not null' => TRUE,
         'default' => 0),
       'disabled_date' => array(
         'description' => 'Date when plan stops working',
-        'type' => 'datetime',
+        'type' => 'int',
         //'not null' => TRUE,
         'default' => 0),
 
@@ -160,7 +160,7 @@ function onlinerecord_schema() {
       
       'dateofexcept' => array(
         'description' => 'Date for type 4,5',
-        'type' => 'datetime',
+        'type' => 'int',
         //'not null' => TRUE,
         'default' => 0),
 

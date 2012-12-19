@@ -34,8 +34,6 @@ function onlinerecord_orgs_form_edit(&$form_state)
   $result=db_query ('Select name FROM {onlinerecord_organizations} where org_id=%d',$arg );
   $org=db_fetch_array($result) ;
 
-  //$form['org_id']=$arg;
-  //drupal_set_message('array orgs=<PRE>'.check_plain(print_r($org,1)).'<PRE>', 'error');
   if ($org['name']!='')
   {
     $form['neworganization']= array(
@@ -65,8 +63,6 @@ function onlinerecord_orgs_form_edit_submit($form, &$form_state)
     $str=$form_state['values']['neworganization'];
     $org_id=$form_state['values']['org_id'];
     $result=db_query("UPDATE {onlinerecord_organizations} set name='%s' where org_id=%d",$str,$org_id);
-    //drupal_set_message('array orgs=<PRE>'.check_plain(print_r($form_state['values'],1)).'<PRE>', 'error');
-    //drupal_set_message('result='.$result);
 }
 function onlinerecord_orgs_form_delete_confirm(&$form_state)
 {
@@ -86,7 +82,6 @@ function onlinerecord_orgs_form_delete_confirm(&$form_state)
       '#value' => $org->name,
     );
     
-    //drupal_set_message('array orgs=<PRE>'.(print_r($GLOBALS,1)).'<PRE>', 'error');
     return confirm_form(
       $form,
       $message,
@@ -175,7 +170,6 @@ function onlinerecord_depts_form_add_submit($form, &$form_state)
     $name=$form_state['values']['newdept'];
     $org_id=$form_state['values']['parent_org_id'];
     $result=db_query("INSERT INTO {onlinerecord_departments} (org_id,name) VALUES ('%d','%s')",intval($org_id),$name);
-    //drupal_set_message('result='.$result);
 }
 
 function onlinerecord_depts_form_edit(&$form_state)
@@ -236,8 +230,6 @@ function onlinerecord_depts_form_edit_submit($form, &$form_state)
     $dept_id=$form_state['values']['dept_id'];
     $org_id=$form_state['values']['parent_org_id'];
     $result=db_query("UPDATE {onlinerecord_departments} set name='%s', org_id=%d where dept_id=%d",$str,$org_id,$dept_id);
-    //drupal_set_message('array orgs=<PRE>'.check_plain(print_r($form_state['values'],1)).'<PRE>', 'error');
-    //drupal_set_message('result='.$result);
 }
 
 
@@ -259,7 +251,6 @@ function onlinerecord_depts_form_delete_confirm(&$form_state)
       '#value' => $org->name,
     );
 
-    //drupal_set_message('array orgs=<PRE>'.(print_r($GLOBALS,1)).'<PRE>', 'error');
     return confirm_form(
       $form,
       $message,
@@ -307,8 +298,6 @@ function onlinerecord_depts_list()
 
 function onlinerecord_plans_form_add(&$form_state)
 {
-   
-
    // Organizations with depts
    $result=db_query('Select d.dept_id, d.name as dname, o.name AS oname FROM {onlinerecord_organizations} o, {onlinerecord_departments} d
    WHERE d.org_id=o.org_id');
@@ -321,7 +310,8 @@ function onlinerecord_plans_form_add(&$form_state)
       $orgs[$i]=$org['oname'].'|'.$org['dname'];
    }
 
-  
+   $dateformat='Y-m-d';
+   $datef=date($dateformat);
 
    $form['parent_dept_id'] = array(
       '#title' => t('Select your place'),
@@ -405,11 +395,12 @@ function onlinerecord_plans_form_add_submit($form, &$form_state)
 
     $edate=$form_state['values']['enabled_date'];
     $ddate=$form_state['values']['disabled_date'];
-
+    $dateformat='Y-m-d';
+    $datef1=strtotime($edate);
+    $datef2=strtotime($ddate);
     $result=db_query("INSERT INTO {onlinerecord_plans}
-      (name,dept_id, kvant_value,worktimestart,worktimefinish)
-      VALUES ('%s',%d,%d,%d,%d,'%s','%s')",$name,$dept_id,$kvant,$wts,$wtf,$edate,$ddate);
-    drupal_set_message('result='.$result);
+      (name,dept_id, kvant_value,worktimestart,worktimefinish,enabled_date,disabled_date)
+      VALUES ('%s',%d,%d,%d,%d,'%s','%s')",$name,$dept_id,$kvant,$wts,$wtf,$datef1,$datef2);
 }
 
 function onlinerecord_plans_form_edit(&$form_state)
@@ -472,8 +463,9 @@ function onlinerecord_plans_form_edit(&$form_state)
       '#default_value' => $plan['worktimefinish'],
    );
    $dateformat='Y-m-d';
-   $datef1=$plan['enabled_date'];
-   $datef2=$plan['disabled_date'];
+   $datef1=date($dateformat,$plan['enabled_date']);
+   $datef2=date($dateformat,$plan['disabled_date']);
+
    $form['enabled_date'] = array(
       '#title' => t('Enabled on'),
       '#type' => 'date_select',
@@ -506,9 +498,7 @@ function onlinerecord_plans_form_edit(&$form_state)
 function onlinerecord_plans_form_edit_validate($form, &$form_state)
 {
    $edate=$form_state['values']['enabled_date'];
-   //dpm($edate);
    $ddate=$form_state['values']['disabled_date'];
-   //dpm($ddate);
    //Check dates beetween
    if (strtotime($edate)>strtotime($ddate))
      form_set_error('disabled_date',t('Disabled date should be after Enabled date'));
@@ -526,20 +516,15 @@ function onlinerecord_plans_form_edit_submit($form, &$form_state)
     $edate=$form_state['values']['enabled_date'];
     $dateformat='Y-m-d';
     $datef1=strtotime($edate);
-    dpm($datef1);
-    dpm($edate);
     $ddate=$form_state['values']['disabled_date'];
     $datef2=strtotime($ddate);
-    dpm($datef2);
-    dpm($ddate);
 
-    $plan_id=$form_state['values']['parent_dept_id'];
+    $plan_id=intval($form_state['values']['plan_id']);
 
     $result=db_query("UPDATE {onlinerecord_plans} SET name='%s', dept_id=%d, kvant_value=%d, worktimestart=%d, worktimefinish=%d, enabled_date=%d, disabled_date=%d
     WHERE plan_id=%d",
     $name,$dept_id,$kvant,$wts,$wtf,
-    $plan_id,$datef1,$datef2);
-
+    $datef1,$datef2,$plan_id);
 }
 
 function onlinerecord_plans_form_delete_confirm(&$form_state)
@@ -560,7 +545,6 @@ function onlinerecord_plans_form_delete_confirm(&$form_state)
       '#value' => $org->name,
     );
 
-    //drupal_set_message('array orgs=<PRE>'.(print_r($GLOBALS,1)).'<PRE>', 'error');
     return confirm_form(
       $form,
       $message,
@@ -702,7 +686,7 @@ function onlinerecord_exceptions_per_plan_add(&$form_state)
    
    //if type=4 (everyyear) or 5 (custom)
    //then we need a daynumber
-   $form['dateofexception'] = array(
+   $form['dateofexcept'] = array(
       '#title' => t('Date of Exception'),
       '#type' => 'date_select',
       '#default_value' => $datef,
@@ -764,184 +748,8 @@ function onlinerecord_exceptions_per_plan_add_submit($form, &$form_state)
     $dn=intval($form_state['values']['daynumber']);
     $dateofe=$form_state['values']['dateofexcept'];
 
-    switch($type_of_exception) {
-      case 0: //error - type not selected
-        break;
-      case 1://everyday
-        $result=db_query("INSERT INTO {onlinerecord_exceptions}
-          (plan_id,type,time_start,time_stop)
-          VALUES (%d,%d,%d,%d)",$plan_id,$type_of_exception,
-            $wts+$kvant1*$kv*60,// Start time
-            $wts+$kvant2*$kv*60);// Finish time
-        break;
-      case 2://everyweek we need correct daynumber (1-Monday, 7-Sunday)
-        $result=db_query("INSERT INTO {onlinerecord_exceptions}
-          (plan_id,type,time_start,time_stop,daynumber)
-          VALUES (%d,%d,%d,%d,%d)",$plan_id,$type_of_exception,
-            $wts+$kvant1*$kv*60,
-            $wts+$kvant2*$kv*60,
-            $dn);
-        break;
-      case 3: // @TODO everymonth
-        break;
-      case 4: // @TODO everyyear
-        break;
-      case 5://everyweek we need correct dateofexception (1-Monday, 7-Sunday)
-        $result=db_query("INSERT INTO {onlinerecord_exceptions}
-          (plan_id,type,time_start,time_stop,daynumber)
-          VALUES (%d,%d,%d,%d,'%s')",$plan_id,$type_of_exception,
-            $wts+$kvant1*$kv*60,// Start time
-            $wts+$kvant2*$kv*60,// Finish time
-            $dateofe);
-        break;
-    }
-
-    drupal_set_message('result='.$result);
-}
-
-////////////////////
-/*
-function onlinerecord_exceptions_add(&$form_state)
-{
-   $arg=check_plain(arg(4));
-   
-   $result=db_query('SELECT p.plan_id, p.name AS planname, p.kvant_value, p.worktimestart, p.worktimefinish,
-   d.name AS deptname, o.name AS orgname  FROM {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
-   WHERE p.dept_id=d.dept_id AND d.org_id=o.org_id');
-
-
-
-
-   $plans=array();
-   $plans[0]='---';
-   while ($plan = db_fetch_object($result))
-   {
-      $plans[$plan->plan_id]=$plan->planname." | ".$plan->deptname." | ".$plan->orgname;
-   }
-   
-   $form['plan_id']=array(
-      '#title' => t('Type of exception'),
-      '#type' => 'select',
-      '#options' => $plans,
-      '#default_value' => 0,
-   );
-
-   $types_of_exception=array();
-   $types_of_exception[0]='---';
-   $types_of_exception[1]='everyday';
-   $types_of_exception[2]='everyweek';
-   $types_of_exception[3]='everymonth';
-   $types_of_exception[4]='everyyear';
-   $types_of_exception[5]='custom';
-
-   $form['type_of_exception'] = array(
-      '#title' => t('Type of exception'),
-      '#type' => 'select',
-      '#options' => $types_of_exception,
-      '#default_value' => 0,
-   );
-
-   //Set number of quants
-   $n=($wtf-$wts)/($kvant_value*60);
-
-   $kvantn=array();
-   $kvantn[-1]="---";
-
-   for ($i=0;$i<$n;$i++)
-   {
-     $temp=$wts+$i*$kvant_value*60;
-     $kvantn[$i]=strval((int)($temp/3600)).":".//Hours
-       str_pad(strval((int)(($temp%3600)/60)),2,'0',STR_PAD_LEFT);     //minutes with leading NULLs;
-   }
-   $form['kvant_start'] = array(
-     '#title' => t('Start quant'),
-     '#type' => 'select',
-     '#options' => $kvantn,
-     '#default_value' => -1,
-     );
-
-   $form['kvant_finish'] = array(
-     '#title' => t('Finish quant'),
-     '#type' => 'select',
-     '#options' => $kvantn,
-     '#default_value' => -1,
-     );
-   //if type=2 (everyweek) or 3 (everymonth)
-   //then we need a daynumber
-   $form['daynumber'] = array(
-      '#title' => t('Daynumber'),
-      '#type' => 'select',
-      '#options' => array(0=>' ',1=>'1',2=>'2',3=>'3',4=>'4',5=>'5',6=>'6',7=>'7'),
-      '#default_value' => 0,
-   );// select?
-
-
-   $dateformat='Y-m-d';
-   $datef=date($dateformat);
-
-   //if type=4 (everyyear) or 5 (custom)
-   //then we need a daynumber
-   $form['dateofexception'] = array(
-      '#title' => t('Date of Exception'),
-      '#type' => 'date_select',
-      '#default_value' => $datef,
-      '#date_format' => $dateformat,
-      '#date_timezone' => 'Asia/Novosibirsk',
-      '#date_increment' => $kvant_value,
-      '#date_year_range' => '0:+1',
-   );
-
-   $form['submit'] = array(
-        '#type' => 'submit',
-        '#value' => t('Add'),
-    );
-
-   return $form;
-}
-function onlinerecord_exceptions_add_validate($form, &$form_state)
-{
-    $plan_id=intval($form_state['values']['plan_id']);
-    $kv=intval($form_state['values']['kvant_value']);
-    $wts=intval($form_state['values']['wts']);
-    $wtf=intval($form_state['values']['wtf']);
-
-    $type_of_exception =intval($form_state['values']['type_of_exception']);
-    $kvant1=intval($form_state['values']['kvant_start']);
-    $kvant2=intval($form_state['values']['kvant_finish']);
-
-    $dn=intval($form_state['values']['daynumber']);
-    $dateofe=$form_state['values']['dateofexcept'];
-
-    if ($kvant2<$kvant1)
-      form_set_error('kvant_start',t('kvant_start > kvant_finish'));
-
-    if ((($type_of_exception)==2)&&($dn==0) )
-    {
-      form_set_error('daynumber',t('Daynumber must be setted correctly'));
-    };
-
-    if ((($type_of_exception)==5)&&($dateofe=='') )
-    {
-          form_set_error('dateofexcept',t('Date must be setted correctly'));
-    };
-
-
-}
-
-
-function onlinerecord_exceptions_add_submit($form, &$form_state)
-{
-    $plan_id=intval($form_state['values']['plan_id']);
-    $kv=intval($form_state['values']['kvant_value']);
-    $wts=intval($form_state['values']['wts']);
-    $wtf=intval($form_state['values']['wtf']);
-
-    $type_of_exception=intval($form_state['values']['type_of_exception']);
-    $kvant1=intval($form_state['values']['kvant_start']);
-    $kvant2=intval($form_state['values']['kvant_finish']);
-
-    $dn=intval($form_state['values']['daynumber']);
-    $dateofe=$form_state['values']['dateofexcept'];
+    $dateformat='Y-m-d';
+    $datef=strtotime($dateofe);
 
     switch($type_of_exception) {
       case 0: //error - type not selected
@@ -968,21 +776,18 @@ function onlinerecord_exceptions_add_submit($form, &$form_state)
       case 5://everyweek we need correct dateofexception (1-Monday, 7-Sunday)
         $result=db_query("INSERT INTO {onlinerecord_exceptions}
           (plan_id,type,time_start,time_stop,daynumber)
-          VALUES (%d,%d,%d,%d,'%s')",$plan_id,$type_of_exception,
+          VALUES (%d,%d,%d,%d,%d)",$plan_id,$type_of_exception,
             $wts+$kvant1*$kv*60,// Start time
             $wts+$kvant2*$kv*60,// Finish time
-            $dateofe);
+            $datef);
         break;
     }
 
-    drupal_set_message('result='.$result);
 }
-*/
-////////////////////
 
 function onlinerecord_exceptions_edit(&$form_state)
 {
-   drupal_set_message('onlinerecord_exceptions_edit','message');
+
    $arg=check_plain(arg(4));
    $result=db_query('SELECT e.type, e.daynumber, e.dateofexcept, e.time_start, e.time_stop,
     p.kvant_value, p.worktimestart, p.worktimefinish FROM {onlinerecord_plans} p, {onlinerecord_exceptions} e
@@ -1070,20 +875,21 @@ function onlinerecord_exceptions_edit(&$form_state)
 
 
    $dateformat='Y-m-d';
-   $datef=date($dateformat);
+   $datef=date($dateformat,$except->dateofexcept);
 
    //if type=4 (everyyear) or 5 (custom)
    //then we need a daynumber
-   $form['dateofexception'] = array(
+   
+   $form['dateofexcept'] = array(
       '#title' => t('Date of Exception'),
       '#type' => 'date_select',
-      '#default_value' => $except->dateofexcept,
+      '#default_value' => $datef,
       '#date_format' => $dateformat,
       '#date_timezone' => 'Asia/Novosibirsk',
       '#date_increment' => $kvant_value,
       '#date_year_range' => '0:+1',
    );
-
+  
    $form['submit'] = array(
         '#type' => 'submit',
         '#value' => t('Save'),
@@ -1135,7 +941,9 @@ function onlinerecord_exceptions_edit_submit($form, &$form_state)
 
     $dn=intval($form_state['values']['daynumber']);
     $dateofe=$form_state['values']['dateofexcept'];
-
+    $dateformat='Y-m-d';
+    $datef=strtotime($dateofe);
+    dpm($datef);
     switch($type_of_exception) {
       case 0: //error - type not selected
         break;
@@ -1171,17 +979,16 @@ function onlinerecord_exceptions_edit_submit($form, &$form_state)
           set type=%d,
           time_start=%d,
           time_stop=%d,
-          dateofexcept='%s'
+          dateofexcept=%d,
           WHERE except_id=%d",
             $type_of_exception,
             $wts+$kvant1*$kv*60,// Start time
             $wts+$kvant2*$kv*60,// Finish time
-            $dateofe,
+            $datef,
             $except_id);
         break;
     }
 
-    drupal_set_message('result='.$result);
 }
 
 
@@ -1203,7 +1010,6 @@ function onlinerecord_exceptions_form_delete_confirm(&$form_state)
       '#value' => $plan,
     );
     
-    //drupal_set_message('array orgs=<PRE>'.(print_r($GLOBALS,1)).'<PRE>', 'error');
     return confirm_form(
       $form,
       $message,
