@@ -157,7 +157,7 @@ function onlinerecord_menu()
       'file' => 'onlinerecord.admin.inc',
 
     );
-  
+
     //////////////////////////// Exceptions ////////////////////////////////////
     //Add depts main page
     $items['admin/settings/onlinerecord/plans/%/exceptions'] = array(
@@ -217,6 +217,27 @@ function onlinerecord_menu()
       'weight' => 0
     );
 
+    //Plans
+    $items['admin/settings/onlinerecord/plans/%/view'] = array(
+      'title' => 'Delete plan',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_plans_form_view',4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc',
+    );
+    $items['admin/settings/onlinerecord/plans/%/view/callback1'] = array(
+      'page callback' => 'onlinerecord_plans_form_view_callback1',
+      'access callback' => TRUE,
+      'file' => 'onlinerecord.admin.inc',
+      'type' => MENU_CALLBACK,
+    );
+    $items['admin/settings/onlinerecord/plans/%/view/callback2'] = array(
+      'page callback' => 'onlinerecord_plans_form_view_callback2',
+      'access callback' => TRUE,
+      'file' => 'onlinerecord.admin.inc',
+      'type' => MENU_CALLBACK,
+    );
     return $items;
 
 
