@@ -1,5 +1,5 @@
 <?php
-/* 
+/*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
@@ -81,7 +81,7 @@ function onlinerecord_orgs_form_delete_confirm(&$form_state)
       '#type' => 'value',
       '#value' => $org->name,
     );
-    
+
     return confirm_form(
       $form,
       $message,
@@ -112,7 +112,7 @@ function onlinerecord_orgs_list()
 
     //$tableHeader = array('org_id', 'name');
     $tableData = array();
-    
+
     while ($org = db_fetch_object($result))
     {
         $actions  = l('изменить', 'admin/settings/onlinerecord/orgs/' . $org->org_id . '/edit/', array('alias' => true)) . ' | ';
@@ -124,7 +124,7 @@ function onlinerecord_orgs_list()
             $actions,
         );
     }
-    
+
     return theme('table', $tableHeader, $tableData);
     //return $form;
 }
@@ -369,7 +369,7 @@ function onlinerecord_plans_form_add(&$form_state)
         '#type' => 'submit',
         '#value' => t('Add'),
     );
-   
+
    return $form;
 }
 
@@ -388,7 +388,7 @@ function onlinerecord_plans_form_add_submit($form, &$form_state)
     $name=$form_state['values']['plan_name'];
     $kvant=intval($form_state['values']['kvant']);
     $dept_id=intval($form_state['values']['parent_dept_id']);
-    
+
     $wts=intval($form_state['values']['worktimestart']);
     $wtf=intval($form_state['values']['worktimefinish']);
 
@@ -597,64 +597,179 @@ function onlinerecord_plans_list()
     //return $form;
 }
 
-
+////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////// plans view ////////////////////////////////////
 function onlinerecord_plans_form_view()
 {
-  $default_first_name = !empty($form_state['values']['ask_first_name']) ? $form_state['values']['ask_first_name'] : FALSE;
-  $default_last_name = !empty($form_state['values']['ask_last_name']) ? $form_state['values']['ask_last_name'] : FALSE;
-  $form['ask_first_name'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Ask me my first name'),
-    '#default_value' => $default_first_name,
-    '#ahah' => array(
-      'path' => 'examples/ahah_example/autotextfields/callback',
-      'wrapper' => 'textfield-wrapper',
-      'effect' => 'fade',
-    )
-  );
-  $form['ask_last_name'] = array(
-   '#type' => 'checkbox',
-   '#title' => t('Ask me my last name'),
-   '#default_value' => $default_last_name,
+  $arg=check_plain(arg(4));
+  /*
+  $result=db_query('SELECT p.plan_id, p.name AS planname, p.kvant_value, p.worktimestart, p.worktimefinish,
+    d.name AS deptname, o.name AS orgname  FROM {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
+    WHERE p.dept_id=d.dept_id AND d.org_id=o.org_id
+    AND plan_id=%d',$arg);
 
-    '#ahah' => array(
-      'path' => 'examples/ahah_example/autotextfields/callback',
-      'wrapper' => 'textfield-wrapper',
-      'effect' => 'fade',
-      // 'event' => 'change', // default value: does not need to be set explicitly.
-
-    ),
+  $plan = db_fetch_object($result);
+  $header_table=$plan->planname." at ".$plan->deptname.", ".$plan->orgname;
+  $form['plan_id']=array(
+    '#type' => 'value',
+    '#value' => $arg,
   );
 
-  $form['textfields'] = array(
-    '#title' => t("Generated text fields for first and last name"),
-    '#prefix' => '<div id="textfield-wrapper">',
-    '#suffix' => '</div>',
-    '#type' => 'fieldset',
-    '#description' => t('This is where we put automatically generated textfields'),
+  dpm($header_table);
+   * */
+
+  $dateformat='Y-m-d';
+  $datef=date($dateformat);
+
+  $default_choose_date = !empty($form_state['values']['choose_date']) ? $form_state['values']['choose_date'] : $datef;
+
+  $form['choose_date'] = array(
+      '#title' => t('Enabled on'),
+      '#type' => 'date_select',
+      '#default_value' => $default_choose_date,
+      '#date_format' => $dateformat,
+      '#date_timezone' => 'Asia/Novosibirsk',
+      '#date_increment' => $kvant_value,
+      '#date_year_range' => '0:+1',
+      '#attributes' => array('class' => 'date-dropdown'),
   );
-
-   if (!empty($form_state['values']['ask_first_name'])) {
-    $form['textfields']['first_name'] = array(
-      '#type' => 'textfield',
-      '#title' => t('First Name'),
-    );
-  }
-  if (!empty($form_state['values']['ask_last_name'])) {
-    $form['textfields']['last_name'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Last Name'),
-    );
-  }
-
 
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Click Me'),
+    '#ahah' => array(
+        'path' => 'admin/settings/onlinerecord/plans/'.$arg.'/view/callback1',
+        'wrapper' => 'dependent_dropdown_holder',
+        //'event' => 'change', // default value: does not need to be set explicitly.
+      ),
   );
 
+  $form['dependent_dropdown_holder'] = array(
+    '#value' => '<div id="dependent_dropdown_holder"></div>'
+  );
 
   return $form;
+}
+
+function onlinerecord_plans_form_view_callback1()
+{
+  $arg=check_plain(arg(4));
+
+  $choosed_date=isset($_POST['choose_date']) ? check_plain($_POST['choose_date']) :"";
+  if ($choosed_date!="")
+  $chd=date('N',strtoint($choosed_date));
+
+  $result=db_query('SELECT p.plan_id, p.name AS planname, p.kvant_value, p.worktimestart, p.worktimefinish,
+    d.name AS deptname, o.name AS orgname, p.enabled_date, p.disabled_date
+    FROM {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
+    WHERE p.dept_id=d.dept_id AND d.org_id=o.org_id
+    AND plan_id=%d',$arg);
+  $plan = db_fetch_object($result);
+    $header_table=$plan->planname." at ".$plan->deptname.", ".$plan->orgname;
+    $wts=$plan->worktimestart;
+    $wtf=$plan->worktimefinish;
+    $kvant_value=$plan->kvant_value;
+
+  $dateformat='Y-m-d';
+
+  //$datef=date($dateformat);
+
+  $edate=$plan->enabled_date;
+  $ddate=$plan->disbled_date;
+  //check if beetween enabled and disabled date
+  //if (($edate<=strtotime($choosed_date))&&(strtotime($choosed_date)<=$ddate))
+  {
+    // Get all exceptions from choosen plan
+    $result=db_query('SELECT e.except_id, e.type, e.time_start, e.time_stop, e.daynumber, e.dateofexcept
+      FROM {onlinerecord_exceptions} e
+      WHERE e.plan_id=%d',$arg);
+    $i=0;
+    $excepts=array();
+    //exceptions to array
+    while ($except = db_fetch_object($result))
+    {
+      $excepts[$i++]=$except;
+    }
+    $exceptscount=$i;
+
+    //preparing table header
+    $tableHeader = array('kvant_number', 'time','except_id', 'type','actions');
+    $tableData = array();
+    //preparing count of kvants
+    $n=($wtf-$wts)/($kvant_value*60);
+
+    for ($i=0;$i<$n;$i++)
+    {
+      $temp=$wts+$i*$kvant_value*60;
+      $flag=true;
+      //check exceptions for current time
+      /*
+      for ($j=0;$j<$exceptscount;$j++)
+      {
+        //get excepts date
+        $tstart=intval($excepts[$j]['time_start']);
+        $tstop=intval($excepts[$j]['time_stop']);
+        $dn=intval($excepts[$j]['daynumber']);
+        $dateofe=intval($excepts[$j]['dateofexcept']);
+
+        //type of exceptions processing
+        switch (intval($excepts[$j]['type'])) {
+          case 1:
+            // try beetwen exception time
+            if (($tstart<=$temp)&&($temp<=$tstop))
+              $flag=false;
+            break;
+          case 2:
+            if (($tstart<=$temp)&&($temp<=$tstop)&&($chd==$dn))
+              $flag=false;
+            break;
+          case 5:
+            if (($tstart<=$temp)&&($temp<=$tstop)&&(strtotime($choosed_date)==$dateofe))
+              $flag=false;
+            break;
+        }
+        if ($flag!=true) break;
+
+      }
+       *
+       */
+      //InputData
+
+      $tableData[] = array(
+        $i,// Kvant number
+        strval((int)($temp/3600)).":".str_pad(strval((int)(($temp%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
+        0,
+        0,//@TODO Readeable typename
+        0,//($flag) ? "OK" :"ZANAYTO",
+      );
+    }
+    drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $tableData)));
+    
+  //} else {
+    //drupal_set_message('There is no avalibles dates','status');
+
+  }
+
+/*
+    while ($excepts = db_fetch_object($result))
+    {
+        $actions  = l('изменить', 'admin/settings/onlinerecord/exceptions/'.$excepts->except_id .'/edit/', array('alias' => true)) . ' | ';
+        $actions .= l('удалить', 'admin/settings/onlinerecord/exceptions/'.$excepts->except_id.'/delete/', array('alias' => true));
+
+        $tableData[] = array(
+            $excepts->pname,
+            $excepts->dname." ".$excepts->oname,
+            $excepts->type,//@TODO Readeable typename
+            $excepts->kvant_start,
+            $excepts->kvant_stop,
+            $excepts->daynumber,
+            $excepts->dateofexcept,
+            $actions,
+        );
+    }
+  //drupal_json(array('status' => TRUE, 'data' => $header_table));
+  //drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $tableData)));
+*/
 }
 
 function ahah_example_autotextfields_callback() {
@@ -673,6 +788,8 @@ function ahah_example_autotextfields_callback() {
   drupal_json(array('status' => TRUE, 'data' => $output));
   exit();
 }
+////////////////////////////////////////////////////////////////////////////////
+
 ////////////////////////////////// Exceptions //////////////////////////////////
 // @TODO Do everymonth, everyyear exceptions (#3 and #4)
 // We do only everyday, everyweek and custom types (#1,#2 and #5) So try to
@@ -687,7 +804,7 @@ function onlinerecord_exceptions_per_plan_add(&$form_state)
      $kvant_value = $plan->kvant_value;
      $wts = $plan->worktimestart;
      $wtf = $plan->worktimefinish;
-   
+
    $form=array();
    $form['plan_id']=array(
       '#type' => 'value',
@@ -758,7 +875,7 @@ function onlinerecord_exceptions_per_plan_add(&$form_state)
 
    $dateformat='Y-m-d';
    $datef=date($dateformat);
-   
+
    //if type=4 (everyyear) or 5 (custom)
    //then we need a daynumber
    $form['dateofexcept'] = array(
@@ -922,7 +1039,7 @@ function onlinerecord_exceptions_edit(&$form_state)
      $kvantn[$i]=strval((int)($temp/3600)).":".//Hours
        str_pad(strval((int)(($temp%3600)/60)),2,'0',STR_PAD_LEFT);     //minutes with leading NULLs;
    }
-   
+
    $ks=($except->time_start-$wts)/(60*$kvant_value);
    $kf=($except->time_stop-$wts)/(60*$kvant_value);
 
@@ -932,7 +1049,7 @@ function onlinerecord_exceptions_edit(&$form_state)
      '#options' => $kvantn,
      '#default_value' => $ks,
      );
-   
+
    $form['kvant_finish'] = array(
      '#title' => t('Finish quant'),
      '#type' => 'select',
@@ -954,7 +1071,7 @@ function onlinerecord_exceptions_edit(&$form_state)
 
    //if type=4 (everyyear) or 5 (custom)
    //then we need a daynumber
-   
+
    $form['dateofexcept'] = array(
       '#title' => t('Date of Exception'),
       '#type' => 'date_select',
@@ -964,7 +1081,7 @@ function onlinerecord_exceptions_edit(&$form_state)
       '#date_increment' => $kvant_value,
       '#date_year_range' => '0:+1',
    );
-  
+
    $form['submit'] = array(
         '#type' => 'submit',
         '#value' => t('Save'),
@@ -1026,7 +1143,7 @@ function onlinerecord_exceptions_edit_submit($form, &$form_state)
         $result=db_query("UPDATE {onlinerecord_exceptions}
           set type=%d,
             time_start=%d,
-            time_stop=%d 
+            time_stop=%d
           WHERE except_id=%d",
             $type_of_exception,
             $wts+$kvant1*$kv*60,// Start time
@@ -1084,7 +1201,7 @@ function onlinerecord_exceptions_form_delete_confirm(&$form_state)
       '#type' => 'value',
       '#value' => $plan,
     );
-    
+
     return confirm_form(
       $form,
       $message,
@@ -1099,7 +1216,7 @@ function onlinerecord_exceptions_form_delete_confirm_submit($form, &$form_state)
 {
     if ($form_state['values']['confirm']) {
       $except_id=$form_state['values']['except_id'];
-      
+
       db_query("DELETE FROM {onlinerecord_exceptions} WHERE except_id=%d",$except_id);
       drupal_set_message('The exception #<i>'.$except_id.'</i> was deleted','status');
       $form_state['redirect']='admin/settings/onlinerecord/plans/'.strval($plan).'exceptions/';

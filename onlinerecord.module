@@ -219,7 +219,7 @@ function onlinerecord_menu()
 
     //Plans
     $items['admin/settings/onlinerecord/plans/%/view'] = array(
-      'title' => 'Delete plan',
+      'title' => 'View plan',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_form_view',4),
       'access arguments' => array('access content'),
