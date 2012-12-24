@@ -644,20 +644,52 @@ function onlinerecord_plans_form_view()
       ),
   );
 
+  $form['submit2'] = array(
+    '#type' => 'submit',
+    '#value' => t('Sumbit2'),
+    '#ahah' => array(
+        'path' => 'admin/settings/onlinerecord/plans/'.$arg.'/view/callback2',
+        'wrapper' => 'dependent_dropdown_holder2',
+        //'event' => 'change', // default value: does not need to be set explicitly.
+      ),
+  );
+
+  $form['dependent_dropdown_holder2'] = array(
+    '#value' => '<div id="dependent_dropdown_holder2"></div>'
+  );
+
   $form['dependent_dropdown_holder'] = array(
     '#value' => '<div id="dependent_dropdown_holder"></div>'
   );
 
+
+
   return $form;
+}
+
+function onlinerecord_plans_form_view_callback2()
+{
+  if (isset($_POST['choose_date']))
+    $choosed_date=check_plain($_POST['choose_date']['year']).'-'.$_POST['choose_date']['month'].'-'.$_POST['choose_date']['day'];
+  //$tmpd=$_POST['choose_date'];
+  //dpm("Choosed _date=".$choosed_date);
+  //dpm($_POST);
+  if ($choosed_date!="")
+    $chd=date('N',strtotime($choosed_date));
+   drupal_json(array('status' => TRUE, 'data' => $choosed_date."=".strtotime($choosed_date)));
 }
 
 function onlinerecord_plans_form_view_callback1()
 {
   $arg=check_plain(arg(4));
-
-  $choosed_date=isset($_POST['choose_date']) ? check_plain($_POST['choose_date']) :"";
+  $choosed_date='---';
+  if (isset($_POST['choose_date']))
+    $choosed_date=check_plain($_POST['choose_date']['year']).'-'.$_POST['choose_date']['month'].'-'.$_POST['choose_date']['day'];
+  //$tmpd=$_POST['choose_date'];
+  //dpm("Choosed _date=".$choosed_date);
+  //dpm($_POST);
   if ($choosed_date!="")
-  $chd=date('N',strtoint($choosed_date));
+    $chd=date('N',strtotime($choosed_date));
 
   $result=db_query('SELECT p.plan_id, p.name AS planname, p.kvant_value, p.worktimestart, p.worktimefinish,
     d.name AS deptname, o.name AS orgname, p.enabled_date, p.disabled_date
@@ -684,6 +716,7 @@ function onlinerecord_plans_form_view_callback1()
       FROM {onlinerecord_exceptions} e
       WHERE e.plan_id=%d',$arg);
     $i=0;
+    //dpm($i);
     $excepts=array();
     //exceptions to array
     while ($except = db_fetch_object($result))
@@ -691,7 +724,7 @@ function onlinerecord_plans_form_view_callback1()
       $excepts[$i++]=$except;
     }
     $exceptscount=$i;
-
+    dpm($excepts);
     //preparing table header
     $tableHeader = array('kvant_number', 'time','except_id', 'type','actions');
     $tableData = array();
@@ -703,47 +736,66 @@ function onlinerecord_plans_form_view_callback1()
       $temp=$wts+$i*$kvant_value*60;
       $flag=true;
       //check exceptions for current time
-      /*
+      $excepts_ids="";
+      $excepts_types="";
       for ($j=0;$j<$exceptscount;$j++)
       {
         //get excepts date
-        $tstart=intval($excepts[$j]['time_start']);
-        $tstop=intval($excepts[$j]['time_stop']);
-        $dn=intval($excepts[$j]['daynumber']);
-        $dateofe=intval($excepts[$j]['dateofexcept']);
+        //dpm($excepts[$j]->except_id);
+        
+        $tstart=intval($excepts[$j]->time_start);
+        $tstop=intval($excepts[$j]->time_stop);
+        $dn=intval($excepts[$j]->daynumber);
+        $dateofe=intval($excepts[$j]->dateofexcept);
+        //dpm("j=".$j.", dateofe".$dateofe);
+
+        //dpm(strtotime($choosed_date));
 
         //type of exceptions processing
-        switch (intval($excepts[$j]['type'])) {
+        switch (intval($excepts[$j]->type)) {
           case 1:
             // try beetwen exception time
             if (($tstart<=$temp)&&($temp<=$tstop))
+            {
               $flag=false;
+              $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
+              $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
+            }
             break;
           case 2:
             if (($tstart<=$temp)&&($temp<=$tstop)&&($chd==$dn))
+            {
               $flag=false;
+              $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
+              $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
+            }
             break;
           case 5:
             if (($tstart<=$temp)&&($temp<=$tstop)&&(strtotime($choosed_date)==$dateofe))
+            {
               $flag=false;
+              $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
+              $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
+            }
             break;
         }
-        if ($flag!=true) break;
-
+        //if ($flag!=true) break;
       }
-       *
-       */
+      
       //InputData
 
       $tableData[] = array(
         $i,// Kvant number
         strval((int)($temp/3600)).":".str_pad(strval((int)(($temp%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
-        0,
-        0,//@TODO Readeable typename
-        0,//($flag) ? "OK" :"ZANAYTO",
+        $excepts_ids,
+        $excepts_types,
+        //$choosed_date,
+        strtotime($choosed_date),
+        ($flag) ? "OK" :"ZANAYTO",
       );
     }
     drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $tableData)));
+    //drupal_json(array('status' => TRUE, 'data' => 'str='.$choosed_date));
     
   //} else {
     //drupal_set_message('There is no avalibles dates','status');
@@ -1243,6 +1295,7 @@ function onlinerecord_exceptions_per_plan_list(&$form_state)
     $tableHeader = array('plan_name', 'deptname','type', 'time_start', 'time_stop', 'daynumber', 'dateofexcept', 'actions');
 
     $tableData = array();
+    $dateformat='Y-m-d';
 
     while ($plan = db_fetch_object($result))
     {
@@ -1256,7 +1309,7 @@ function onlinerecord_exceptions_per_plan_list(&$form_state)
             $plan->kvant_start,
             $plan->kvant_stop,
             $plan->daynumber,
-            $plan->dateofexcept,
+            (intval($plan->dateofexcept)==0) ? "-" : date($dateformat,$plan->dateofexcept),
             $actions,
         );
     }
@@ -1281,7 +1334,7 @@ function onlinerecord_exceptions_list(&$form_state)
     $tableHeader = array('plan_name', 'deptname','type', 'time_start', 'time_stop', 'daynumber', 'dateofexcept', 'actions');
 
     $tableData = array();
-
+    $dateformat='Y-m-d';
     while ($plan = db_fetch_object($result))
     {
         $actions  = l('изменить', 'admin/settings/onlinerecord/exceptions/'.$plan->except_id .'/edit/', array('alias' => true)) . ' | ';
@@ -1294,7 +1347,7 @@ function onlinerecord_exceptions_list(&$form_state)
             $plan->kvant_start,
             $plan->kvant_stop,
             $plan->daynumber,
-            $plan->dateofexcept,
+            (intval($plan->dateofexcept)==0) ? "-" : date($dateformat,$plan->dateofexcept),
             $actions,
         );
     }
