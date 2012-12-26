@@ -662,9 +662,7 @@ function onlinerecord_plans_form_view()
     '#value' => '<div id="dependent_dropdown_holder"></div>'
   );
 
-
-
-  return $form;
+ return $form;
 }
 
 function onlinerecord_plans_form_view_callback2()
@@ -1354,7 +1352,348 @@ function onlinerecord_exceptions_list(&$form_state)
 
     return theme('table', $tableHeader, $tableData);
 }
+/////////////////////////////////////SERVICES//////////////////////////////////
+function onlinerecord_services_form_add(&$form_state)
+{
+
+   $form['service_id']= array(
+      '#title' => t('Insert service name'),
+      '#type' => 'textfield',
+      '#default_value' => '',
+    );
+
+   $form['cabinet']= array(
+      '#title' => t('Insert cabinet'),
+      '#type' => 'textfield',
+      '#default_value' => '',
+    );
+
+   $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Add'),
+    );
+
+    return $form;
+}
+
+function onlinerecord_services_form_add_submit($form, &$form_state)
+{
+    //$str=check_plain($form_state['values']['neworganization']);
+    $name=$form_state['values']['name'];
+    $cabinet=$form_state['values']['cabinet'];
+    $result=db_query("INSERT INTO {onlinerecord_services} (name,cabinet) VALUES ('%s','%s')",$name,$cabinet);
+}
+
+function onlinerecord_services_form_edit(&$form_state)
+{
+  $arg=check_plain(arg(4));
+  $result=db_query ('Select name,cabinet FROM {onlinerecord_services} where service_id=%d',$arg );
+  $service=db_fetch_array($result) ;
+
+  //$org=$dept['ord_id'];
+
+  if ($service['name']!='')
+  {
+    
+    // name text widget
+    $form['name']= array(
+      '#title' => t('Insert Service name'),
+      '#type' => 'textfield',
+      '#default_value' => $service['name'],
+    );
+    $form['cabinet']= array(
+      '#title' => t('Insert Service name'),
+      '#type' => 'textfield',
+      '#default_value' => $service['cabinet'],
+    );
+    // id-value
+    $form['service_id']=array(
+      '#type' => 'value',
+      '#value' => $arg,
+    );
+
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Add'),
+    );
+    return $form;
+  }
+  else {$form=drupal_get_form('onlinerecord_services_list');}
+  return $form;
+}
+
+function onlinerecord_services_form_edit_submit($form, &$form_state)
+{
+    $service_id=$form_state['values']['service_id'];
+
+    $name=$form_state['values']['name'];
+    $cabinet=$form_state['values']['cabinet'];
+    
+    $result=db_query("UPDATE {onlinerecord_services} set name='%s', cabinet='%s' where service_id=%d",$name,$cabinet,$service_id);
+}
 
 
+function onlinerecord_services_form_delete_confirm(&$form_state)
+{
+    $message=t('Are you sure want to delete department?');
+    $arg=check_plain(arg(4));
+
+    $result=db_query("Select name FROM {onlinerecord_services} WHERE service_id=%d",$arg);
+
+    $org = db_fetch_object($result);
+
+    $form['service_id']=array(
+      '#type' => 'value',
+      '#value' => $arg,
+    );
+    $form['name']=array(
+      '#type' => 'value',
+      '#value' => $org->name,
+    );
+
+
+    return confirm_form(
+      $form,
+      $message,
+      'admin/settings/onlinerecord/services',
+      '<i>this operation could not be canceled!</i>',
+      'Delete',
+      'Cancel'
+    );
+}
+
+function onlinerecord_services_form_delete_confirm_submit($form, &$form_state)
+{
+    if ($form_state['values']['confirm']) {
+      $dept_id=$form_state['values']['service_id'];
+      $name=$form_state['values']['name'];
+
+      db_query("DELETE FROM {onlinerecord_services} WHERE service_id=%d",$dept_id);
+      drupal_set_message('The department <i>'.$name.'</i> was deleted','status');
+      $form_state['redirect']='admin/settings/onlinerecord/services/';
+      //@TODO - Plan, and records in online_record controls
+    }
+}
+
+
+function onlinerecord_services_list()
+{
+    $result=db_query('SELECT service_id, name , cabinet  FROM {onlinerecord_services}');
+    $tableHeader = array('Service_id', 'name','cabinet' ,'Actions');
+    $tableData = array();
+
+    while ($org = db_fetch_object($result))
+    {
+        $actions  = l('изменить', 'admin/settings/onlinerecord/services/' . $org->service_id. '/edit/', array('alias' => true)) . ' | ';
+        $actions .= l('удалить', 'admin/settings/onlinerecord/services/' . $org->service_id. '/delete/', array('alias' => true));
+
+        $tableData[] = array(
+            $org->service_id,
+            $org->name,
+            $org->cabinet,
+            $actions,
+        );
+    }
+    return theme('table', $tableHeader, $tableData);
+}
+
+
+////////////////////////////////PLANS - Services/////////////////////////////////
+function onlinerecord_plans_services_form_add(&$form_state)
+{
+    $result=db_query('SELECT p.plan_id, p.name as pname,
+      d.name as dname,
+      o.name AS oname
+
+      FROM   {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
+      WHERE p.dept_id=d.dept_id
+      AND d.org_id=o.org_id');
+    $plans=array();
+    $plans[-1]="---";
+    while ($plan = db_fetch_object($result))
+    {
+      $plans[$plan->plan_id]=$plan->pname." at ".$plan->dname." | ".$plan->oname;
+    }
+
+
+    $result=db_query('SELECT service_id, name, cabinet
+      FROM   {onlinerecord_services}');
+    $services=array();
+    $services[-1]="---";
+    while ($service = db_fetch_object($result))
+    {
+      $services[$service->service_id]=$service->name." at ".$service->cabinet;
+    }
+
+    $form['plan_id'] = array(
+      '#title' => t('Plans'),
+      '#type' => 'select',
+      '#options' => $plans,
+      '#default_value' => -1,
+    );
+
+    $form['service_id'] = array(
+      '#title' => t('Type of exception'),
+      '#type' => 'select',
+      '#options' => $services,
+      '#default_value' => -1,
+    );
+
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Add'),
+    );
+
+  return $form;
+}
+
+function onlinerecord_plans_services_form_add_submit($form, &$form_state)
+{
+    //$str=check_plain($form_state['values']['neworganization']);
+    $plan_id=$form_state['values']['plan_id'];
+    $service_id=$form_state['values']['service_id'];
+    $result=db_query("INSERT INTO {onlinerecord_plans_services} (service_id,plan_id) VALUES (%d,%d)",$service_id,$plan_id);
+}
+
+function onlinerecord_plans_services_form_edit(&$form_state)
+{
+  $arg1=check_plain(arg(4));
+  $arg2=check_plain(arg(5));
+  $result=db_query('SELECT ps.plan_id, ps.service_id
+      FROM {onlinerecord_services} s, {onlinerecord_plans} p, {onlinerecord_plans_services} ps
+      WHERE ps.service_id=s.service_id AND p.plan_id=ps.plan_id
+      AND ps.plan_id=%d AND ps.service_id=%d',intval($arg1),intval($arg2));
+  $ps=db_fetch_array($result) ;
+
+  if (isset($ps))
+  //if (1==1)
+  {
+    $result=db_query('SELECT p.plan_id, p.name as pname,
+      d.name as dname,
+      o.name AS oname
+
+      FROM   {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
+      WHERE p.dept_id=d.dept_id
+      AND d.org_id=o.org_id');
+    $plans=array();
+    $plans[-1]="--";
+    while ($plan = db_fetch_object($result))
+    {
+      $plans[$plan->plan_id]=$plan->pname." at ".$plan->dname." | ".$plan->oname;
+    }
+    
+    
+    $result=db_query('SELECT service_id, name, cabinet
+      FROM {onlinerecord_services}');
+    $services=array();
+    $services[-1]="--";
+    while ($service = db_fetch_object($result))
+    {
+      $services[$service->service_id]=$service->name." at ".$service->cabinet;
+    }
+    
+    $form['plan_id'] = array(
+      '#title' => t('Plans'),
+      '#type' => 'select',
+      '#options' => $plans,
+      '#default_value' => $ps['plan_id'],
+    );
+    $form['service_id'] = array(
+      '#title' => t('Type of exception'),
+      '#type' => 'select',
+      '#options' => $services,
+      '#default_value' => $ps['service_id'],
+    );
+
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Add'),
+    );
+  }
+  else {$form=drupal_get_form('onlinerecord_plans_services_list');}
+  return $form;
+}
+
+function onlinerecord_plans_services_form_edit_submit($form, &$form_state)
+{
+    $service_id=$form_state['values']['service_id'];
+
+    $name=$form_state['values']['name'];
+    $cabinet=$form_state['values']['cabinet'];
+
+    $result=db_query("UPDATE {onlinerecord_services} set name='%s', cabinet='%s' where service_id=%d",$name,$cabinet,$service_id);
+}
+
+
+function onlinerecord_plans_services_form_delete_confirm(&$form_state)
+{
+    $message=t('Are you sure want to delete plan-service connection?');
+    $arg1=check_plain(arg(4));
+    $arg2=check_plain(arg(5));
+
+    $result=db_query("Select plan_id, service_id FROM {onlinerecord_plans_services}
+      WHERE plan_id=%d AND service_id=%d",intval($arg1),intval($arg2));
+
+    $org = db_fetch_object($result);
+    if (isset($org))
+    {
+      $form['plan_id']=array(
+        '#type' => 'value',
+        '#value' => $arg1,
+      );
+      $form['service_id']=array(
+        '#type' => 'value',
+        '#value' => $arg2,
+      );
+      return confirm_form(
+        $form,
+        $message,
+        'admin/settings/onlinerecord/services',
+        '<i>this operation could not be canceled!</i>',
+        'Delete',
+        'Cancel'
+      );
+    }
+}
+
+function onlinerecord_plans_services_form_delete_confirm_submit($form, &$form_state)
+{
+    if ($form_state['values']['confirm']) {
+      $service_id=$form_state['values']['service_id'];
+      $plan_id=$form_state['values']['plan_id'];
+
+      db_query("DELETE FROM {onlinerecord_services}
+      WHERE plan_id=%d AND service_id=%d",$plan_id,$service_id);
+      drupal_set_message('The plan-service connection was deleted','status');
+      $form_state['redirect']='admin/settings/onlinerecord/plans_services/';
+      //@TODO - Plan, and records in online_record controls
+    }
+}
+
+
+function onlinerecord_plans_services_list()
+{
+    $result=db_query('SELECT s.service_id, s.name as servicename, s.cabinet, p.plan_id, p.name as planname
+      FROM {onlinerecord_services} s, {onlinerecord_plans} p, {onlinerecord_plans_services} ps
+      WHERE ps.service_id=s.service_id AND p.plan_id=ps.plan_id');
+    $tableHeader = array('Service_id', 'servicename','cabinet' ,'plan_id','planname','Actions');
+    $tableData = array();
+
+    while ($org = db_fetch_object($result))
+    {
+        $actions  = l('изменить', 'admin/settings/onlinerecord/plans_services/'.$org->plan_id.'/' . $org->service_id. '/edit/', array('alias' => true)) . ' | ';
+        $actions .= l('удалить', 'admin/settings/onlinerecord/plans_services/'.$org->plan_id.'/' . $org->service_id. '/delete/', array('alias' => true));
+
+        $tableData[] = array(
+            $org->service_id,
+            $org->servicename,
+            $org->cabinet,
+            $org->plan_id,
+            $org->planname,
+            $actions,
+        );
+    }
+    return theme('table', $tableHeader, $tableData);
+}
 
 ?>

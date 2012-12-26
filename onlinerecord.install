@@ -105,25 +105,30 @@ function onlinerecord_schema() {
       'name' => array(
         'description' => 'The name of user ',
         'type' => 'varchar',
-        'length' => 80,
+        'length' => 255,
         'not null' => TRUE,
         'default' => ''),
-      'kvant_value' => array(
-        'description' => 'Length of time period.',
+      'kvant' => array(
+        'description' => 'The name of user ',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0),
-      'worktimestart' => array(
-        'description' => 'WorkTime Start.',
+      'recorddate' => array(
+        'description' => 'Date for type 4,5',
+        'type' => 'int',
+        //'not null' => TRUE,
+        'default' => 0),
+      'birthyear' => array(
+        'description' => 'The name of user ',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0),
-      'worktimefinsh' => array(
-        'description' => 'WorkTime Stop.',
+      'services_id' => array(
+        'description' => 'Reference to Department of organization.',
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0),
-      'dept_id' => array(
+      'plan_id' => array(
         'description' => 'Reference to Department of organization.',
         'type' => 'int',
         'not null' => TRUE,
@@ -177,6 +182,46 @@ function onlinerecord_schema() {
       ),
     'primary key' => array('except_id'),
 
+    );
+
+    $schema['onlinerecord_services'] = array(
+    'description' => 'Table of services.',
+    'fields' => array(
+      'service_id' => array(
+        'description' => 'Service id - main table',
+        'type' => 'serial',
+        'not null' => TRUE,
+        ),
+      'name' => array(
+        'description' => 'The name of user ',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      'cabinet' => array(
+        'description' => 'The name of user ',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''),
+      
+      ),
+    'primary key' => array('service_id'),
+    );
+    $schema['onlinerecord_plans_services'] = array(
+    'description' => 'Table of services.',
+    'fields' => array(
+      'service_id' => array(
+        'description' => 'Service id - main table',
+        'type' => 'int',
+        'not null' => TRUE,
+        ),
+      'plan_id' => array(
+        'description' => 'Service id - main table',
+        'type' => 'int',
+        'not null' => TRUE,
+        ),
+      ),
     );
 	
   return $schema;

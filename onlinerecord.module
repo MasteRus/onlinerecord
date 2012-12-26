@@ -216,6 +216,93 @@ function onlinerecord_menu()
       'file' => 'onlinerecord.admin.inc',
       'weight' => 0
     );
+    //////////////////////////////////Services//////////////////////////////////
+     //Add services main page
+    $items['admin/settings/onlinerecord/services'] = array(
+      'title' => 'OnlineRecord services',
+      //'page callback' => 'drupal_get_form',
+      //'page arguments' => array('onlinerecord_organizations_list'),
+      'page callback' =>  'onlinerecord_services_list',
+      'access arguments' => array('access content'),
+      'type' => MENU_NORMAL_ITEM,
+      'file' => 'onlinerecord.admin.inc'
+    );
+
+    //Add services add-page
+    $items['admin/settings/onlinerecord/services/add'] = array(
+      'title' => 'Add service',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_services_form_add'),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc',
+    );
+
+    //Add services edit-page
+    $items['admin/settings/onlinerecord/services/%/edit'] = array(
+      'title' => 'Edit service',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_services_form_edit',4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      // 'type' => MENU_NORMAL_ITEM,
+      'file' => 'onlinerecord.admin.inc',
+    );
+
+    //Add services delete-page
+    $items['admin/settings/onlinerecord/services/%/delete'] = array(
+      'title' => 'Delete service',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_services_form_delete_confirm',4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc',
+
+    );
+
+    ///////////////////////////////PLANS - SERVICES/////////////////////////////
+     //Add services main page
+    $items['admin/settings/onlinerecord/plans_services'] = array(
+      'title' => 'OnlineRecord services',
+      //'page callback' => 'drupal_get_form',
+      //'page arguments' => array('onlinerecord_organizations_list'),
+      'page callback' =>  'onlinerecord_plans_services_list',
+      'access arguments' => array('access content'),
+      'type' => MENU_NORMAL_ITEM,
+      'file' => 'onlinerecord.admin.inc'
+    );
+
+    //Add services add-page
+    $items['admin/settings/onlinerecord/plans_services/add'] = array(
+      'title' => 'Add service',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_plans_services_form_add'),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc',
+    );
+
+    //Add services edit-page
+    $items['admin/settings/onlinerecord/plans_services/%/%/edit'] = array(
+      'title' => 'Edit service',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_plans_services_form_edit',4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      // 'type' => MENU_NORMAL_ITEM,
+      'file' => 'onlinerecord.admin.inc',
+    );
+
+    //Add services delete-page
+    $items['admin/settings/onlinerecord/plans_services/%/%/delete'] = array(
+      'title' => 'Delete service',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_plans_services_form_delete_confirm',4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'onlinerecord.admin.inc',
+
+    );
 
     //Plans
     $items['admin/settings/onlinerecord/plans/%/view'] = array(
@@ -239,6 +326,8 @@ function onlinerecord_menu()
       'type' => MENU_CALLBACK,
     );
     return $items;
+
+
 
 
 }
