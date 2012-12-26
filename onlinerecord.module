@@ -282,17 +282,6 @@ function onlinerecord_menu()
       'file' => 'onlinerecord.admin.inc',
     );
 
-    //Add services edit-page
-    $items['admin/settings/onlinerecord/plans_services/%/%/edit'] = array(
-      'title' => 'Edit service',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('onlinerecord_plans_services_form_edit',4),
-      'access arguments' => array('access content'),
-      'type' => MENU_LOCAL_TASK,
-      // 'type' => MENU_NORMAL_ITEM,
-      'file' => 'onlinerecord.admin.inc',
-    );
-
     //Add services delete-page
     $items['admin/settings/onlinerecord/plans_services/%/%/delete'] = array(
       'title' => 'Delete service',
