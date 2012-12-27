@@ -19,8 +19,8 @@ function onlinerecord_menu()
     //Add main onlinerrecord settings pages
     $items['admin/settings/onlinerecord'] = array(
       'title' => 'OnlineRecord',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('onlinerecord_form'),
+      'page callback' =>  'onlinerecord_form',
+      //'page arguments' => array('onlinerecord_form'),
       'access arguments' => array('access content'),
       'type' => MENU_NORMAL_ITEM,
     );
@@ -314,6 +314,17 @@ function onlinerecord_menu()
       'file' => 'onlinerecord.admin.inc',
       'type' => MENU_CALLBACK,
     );
+
+    //Cloning plans with all exceptions
+    $items['admin/settings/onlinerecord/plans/%/clone'] = array(
+      'title' => 'Edit plan',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_plans_form_clone',4),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+      // 'type' => MENU_NORMAL_ITEM,
+      'file' => 'onlinerecord.admin.inc',
+    );
     return $items;
 
 
@@ -321,8 +332,9 @@ function onlinerecord_menu()
 
 }
 
-function onlinerecord_form(&$form_state)
+function onlinerecord_form()
 {
+  /*
     $form['links_fieldset'] = array(
       '#title' => t("links"),
       // The prefix/suffix provide the div that we're replacing, named by
@@ -332,8 +344,21 @@ function onlinerecord_form(&$form_state)
       '#type' => 'fieldset',
       '#description' => t('This is where we get automatically Load/generate textfields'),
     );
+   */
+    //l('удалить', 'admin/settings/onlinerecord/plans_services/'.$org->plan_id.'/' . $org->service_id. '/delete/', array('alias' => true));
+    $tableHeader = array('Onlinerecord');
+    $tableData = array();
+    $tableData[] = array(l('Orgs' , 'admin/settings/onlinerecord/orgs/',array('alias'=>true)));
+    $tableData[] = array(l('Depts' , 'admin/settings/onlinerecord/depts/',array('alias'=>true)));
+    $tableData[] = array(l('Plans' , 'admin/settings/onlinerecord/plans/',array('alias'=>true)));
+    $tableData[] = array(l('Exceptions' , 'admin/settings/onlinerecord/exceptions/',array('alias'=>true)));
+    $tableData[] = array(l('Services' , 'admin/settings/onlinerecord/services/',array('alias'=>true)));
+    $tableData[] = array(l('Plans-Services' , 'admin/settings/onlinerecord/plans_services/',array('alias'=>true)));
 
-return $form;
+
+    
+    return theme('table', $tableHeader, $tableData);
+  //return $form;
 }
 
 ?>

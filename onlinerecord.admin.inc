@@ -557,8 +557,9 @@ function onlinerecord_plans_form_delete_confirm(&$form_state)
 function onlinerecord_plans_form_delete_confirm_submit($form, &$form_state)
 {
     if ($form_state['values']['confirm']) {
-      $dept_id=$form_state['values']['plan_id'];
+      $plan_id=$form_state['values']['plan_id'];
       $name=$form_state['values']['name'];
+      //dpm($plan_id);
       db_query("DELETE FROM {onlinerecord_plans} WHERE plan_id=%d",$plan_id);
       drupal_set_message('The department <i>'.$name.'</i> was deleted','status');
       $form_state['redirect']='admin/settings/onlinerecord/plans/';
@@ -596,7 +597,207 @@ function onlinerecord_plans_list()
     return theme('table', $tableHeader, $tableData);
     //return $form;
 }
+/////////////////////////////////Plan cloning//////////////////////////////////
+function onlinerecord_plans_form_clone(&$form_state)
+{
+   // Organizations with depts
 
+   $arg=check_plain(arg(4));
+   $result=db_query('SELECT plan_id, dept_id, name, kvant_value, worktimestart, worktimefinish, enabled_date, disabled_date
+    FROM {onlinerecord_plans} where plan_id=%d',$arg);
+   $plan=db_fetch_array($result) ;
+
+   $result=db_query('Select d.dept_id, d.name as dname, o.name AS oname FROM {onlinerecord_organizations} o, {onlinerecord_departments} d
+   WHERE d.org_id=o.org_id');
+
+   $orgs=array();
+   $orgs[0]='---';
+   $i=0;
+   while ($org=db_fetch_array($result)) {
+      $i=intval($org['dept_id']);
+      $orgs[$i]=$org['oname'].'|'.$org['dname'];
+   }
+
+
+   $result=db_query('Select d.dept_id, d.name as dname, o.name AS oname FROM {onlinerecord_organizations} o, {onlinerecord_departments} d
+   WHERE d.org_id=o.org_id');
+
+   $orgs=array();
+   $orgs[0]='---';
+   $i=0;
+   while ($org=db_fetch_array($result)) {
+      $i=intval($org['dept_id']);
+      $orgs[$i]=$org['oname'].'|'.$org['dname'];
+   }
+
+   $dateformat='Y-m-d';
+   $datef=date($dateformat);
+   $form['parent_plan_id']=array(
+     '#type' => 'value',
+     '#value' => $arg,
+   );
+
+   $form['parent_dept_id'] = array(
+      '#title' => t('Select your place'),
+      '#type' => 'select',
+      '#options' => $orgs,
+      '#default_value' => $plan['dept_id'],
+   );
+
+   $form['plan_name']= array(
+      '#title' => t('Insert Plan name'),
+      '#type' => 'textfield',
+      '#default_value' => '',
+    );
+
+   $values=array(4=>4,5=>5,6=>6,8=>8,10=>10,15=>15,20=>20,30=>30);
+   $form['kvant'] = array(
+      '#title' => t('Select your place'),
+      '#type' => 'select',
+      '#options' => $values,
+      '#default_value' => $plan['kvant_value'],
+   );
+
+   $form['worktimestart'] = array(
+      '#title' => t('Start time'),
+      '#type' => 'textfield',
+      '#default_value' => $plan['worktimestart'],
+   );
+
+   $form['worktimefinish'] = array(
+      '#title' => t('Finish time'),
+      '#type' => 'textfield',
+      '#default_value' => $plan['worktimefinish'],
+   );
+
+   $form['enabled_date'] = array(
+      '#title' => t('Enabled on'),
+      '#type' => 'date_select',
+      '#default_value' => $datef,
+      '#date_format' => $dateformat,
+      '#date_timezone' => 'Asia/Novosibirsk',
+      '#date_increment' => $kvant_value,
+      '#date_year_range' => '0:+1',
+   );
+
+   $form['disabled_date'] = array(
+      '#title' => t('Disabled on'),
+      '#type' => 'date_select',
+      '#default_value' => $datef,
+      '#date_format' => $dateformat,
+      '#date_timezone' => 'Asia/Novosibirsk',
+      '#date_increment' => $kvant_value,
+      '#date_year_range' => '0:+1',
+   );
+
+   $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Add'),
+    );
+
+   return $form;
+}
+
+function onlinerecord_plans_form_clone_validate($form, &$form_state)
+{
+   $edate=$form_state['values']['enabled_date'];
+   $ddate=$form_state['values']['disabled_date'];
+   //Check dates beetween
+   if (strtotime($edate)>strtotime($ddate))
+     form_set_error('disabled_date',t('Disabled date should be after Enabled date'));
+}
+
+function onlinerecord_plans_form_clone_submit($form, &$form_state)
+{
+    //$str=check_plain($form_state['values']['neworganization']);
+    $parent_plan_id=$form_state['values']['parent_plan_id'];
+
+    $name=$form_state['values']['plan_name'];
+    $kvant=intval($form_state['values']['kvant']);
+    $dept_id=intval($form_state['values']['parent_dept_id']);
+
+    $wts=intval($form_state['values']['worktimestart']);
+    $wtf=intval($form_state['values']['worktimefinish']);
+
+    $edate=$form_state['values']['enabled_date'];
+    $ddate=$form_state['values']['disabled_date'];
+    $dateformat='Y-m-d';
+    $datef1=strtotime($edate);
+    $datef2=strtotime($ddate);
+    $result=db_query("INSERT INTO {onlinerecord_plans}
+      (name,dept_id, kvant_value,worktimestart,worktimefinish,enabled_date,disabled_date)
+      VALUES ('%s',%d,%d,%d,%d,'%s','%s')",$name,$dept_id,$kvant,$wts,$wtf,$datef1,$datef2);
+
+    //$new_id=db_last_insert_id()
+    //@TODO @REFACTORING some troubles with using, because fucking shit, it's not a bug
+    //It' means that param's^
+    //a) don't work at MYSQL
+    //b) Watchdog may do insert after our query so last_id
+    // drupal.org/node/369520;
+    $inserted_id=db_result(db_query('SELECT LAST_INSERT_ID()'));
+    
+    dpm ($inserted);
+    $result=db_query('SELECT e.except_id, e.type, e.time_start, e.time_stop, e.daynumber, e.dateofexcept
+    FROM {onlinerecord_exceptions} e
+    WHERE e.plan_id=%d',$parent_plan_id);
+
+    while ($plan = db_fetch_object($result))
+    {
+      $tableData[] = array(
+        $plan->type,//@TODO Readeable typename
+        //$plan->time_start,
+        strval((int)($plan->time_start/3600)).":".str_pad(strval((int)(($plan->time_start%3600)/60)),2,'0',STR_PAD_LEFT),
+        //$plan->time_stop,
+        strval((int)($plan->time_stop/3600)).":".str_pad(strval((int)(($plan->time_stop%3600)/60)),2,'0',STR_PAD_LEFT),
+        //$plan->daynumber,
+        (intval($plan->daynumber)==0) ? "-" : $plan->daynumber,
+        (intval($plan->dateofexcept)==0) ? "-" : date($dateformat,$plan->dateofexcept),
+        $actions,
+      );
+    
+      //$plan_id=intval($form_state['values']['plan_id']);
+
+      $wts=intval($plan->time_start);
+      $wtf=intval($plan->time_stop);
+      $type_of_exception=intval($plan->type);
+      $dn=intval($plan->daynumber);
+      $dateformat='Y-m-d';
+      $datef=intval($plan->dateofexcept);
+
+      switch($type_of_exception) {
+        case 0: //error - type not selected
+          break;
+        case 1://everyday
+          $result=db_query("INSERT INTO {onlinerecord_exceptions}
+            (plan_id,type,time_start,time_stop)
+            VALUES (%d,%d,%d,%d)",$inserted_id,$type_of_exception,
+              $wts,// Start time
+              $wtf);// Finish time
+          break;
+        case 2://everyweek we need correct daynumber (1-Monday, 7-Sunday)
+          $result=db_query("INSERT INTO {onlinerecord_exceptions}
+            (plan_id,type,time_start,time_stop,daynumber)
+            VALUES (%d,%d,%d,%d,%d)",$inserted_id,$type_of_exception,
+              $wts,
+              $wtf,
+              $dn);
+          break;
+        case 3: // @TODO everymonth
+          break;
+        case 4: // @TODO everyyear
+          break;
+        case 5://we need correct dateofexception 
+          $result=db_query("INSERT INTO {onlinerecord_exceptions}
+            (plan_id,type,time_start,time_stop,dateofexcept)
+            VALUES (%d,%d,%d,%d,%d)",$inserted_id,$type_of_exception,
+              $wts,// Start time
+              $wtf,// Finish time
+              $datef);
+          break;
+      }
+    }
+
+}
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// plans view ////////////////////////////////////
 function onlinerecord_plans_form_view()
@@ -722,7 +923,7 @@ function onlinerecord_plans_form_view_callback1()
       $excepts[$i++]=$except;
     }
     $exceptscount=$i;
-    dpm($excepts);
+    //dpm($excepts);
     //preparing table header
     $tableHeader = array('kvant_number', 'time','except_id', 'type','actions');
     $tableData = array();
@@ -1017,7 +1218,7 @@ function onlinerecord_exceptions_per_plan_add_submit($form, &$form_state)
         break;
       case 5://everyweek we need correct dateofexception (1-Monday, 7-Sunday)
         $result=db_query("INSERT INTO {onlinerecord_exceptions}
-          (plan_id,type,time_start,time_stop,daynumber)
+          (plan_id,type,time_start,time_stop,dateofexcept)
           VALUES (%d,%d,%d,%d,%d)",$plan_id,$type_of_exception,
             $wts+$kvant1*$kv*60,// Start time
             $wts+$kvant2*$kv*60,// Finish time
@@ -1304,9 +1505,12 @@ function onlinerecord_exceptions_per_plan_list(&$form_state)
             $plan->pname,
             $plan->dname." ".$plan->oname,
             $plan->type,//@TODO Readeable typename
-            $plan->kvant_start,
-            $plan->kvant_stop,
-            $plan->daynumber,
+            //$plan->time_start,
+            strval((int)($plan->time_start/3600)).":".str_pad(strval((int)(($plan->time_start%3600)/60)),2,'0',STR_PAD_LEFT),
+            //$plan->time_stop,
+            strval((int)($plan->time_stop/3600)).":".str_pad(strval((int)(($plan->time_stop%3600)/60)),2,'0',STR_PAD_LEFT),
+            //$plan->daynumber,
+            (intval($plan->daynumber)==0) ? "-" : $plan->daynumber,
             (intval($plan->dateofexcept)==0) ? "-" : date($dateformat,$plan->dateofexcept),
             $actions,
         );
@@ -1356,7 +1560,7 @@ function onlinerecord_exceptions_list(&$form_state)
 function onlinerecord_services_form_add(&$form_state)
 {
 
-   $form['service_id']= array(
+   $form['name']= array(
       '#title' => t('Insert service name'),
       '#type' => 'textfield',
       '#default_value' => '',
@@ -1389,7 +1593,7 @@ function onlinerecord_services_form_edit(&$form_state)
   $arg=check_plain(arg(4));
   $result=db_query ('Select name,cabinet FROM {onlinerecord_services} where service_id=%d',$arg );
   $service=db_fetch_array($result) ;
-
+  
   //$org=$dept['ord_id'];
 
   if ($service['name']!='')
