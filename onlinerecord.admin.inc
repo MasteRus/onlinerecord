@@ -711,7 +711,7 @@ function onlinerecord_plans_form_clone_submit($form, &$form_state)
 {
     //$str=check_plain($form_state['values']['neworganization']);
     $parent_plan_id=$form_state['values']['parent_plan_id'];
-
+    
     $name=$form_state['values']['plan_name'];
     $kvant=intval($form_state['values']['kvant']);
     $dept_id=intval($form_state['values']['parent_dept_id']);
@@ -734,29 +734,14 @@ function onlinerecord_plans_form_clone_submit($form, &$form_state)
     //a) don't work at MYSQL
     //b) Watchdog may do insert after our query so last_id
     // drupal.org/node/369520;
-    $inserted_id=db_result(db_query('SELECT LAST_INSERT_ID()'));
-    
-    dpm ($inserted);
+    $inserted_id=intval(db_result(db_query('SELECT LAST_INSERT_ID()')));
+    //$inserted_id=db_result(db_query('SELECT max(plan_id) FROM {onlinerecord_plans}'));
+    //$res=db_query('SELECT max(plan_id) FROM {onlinerecord_plans}');
     $result=db_query('SELECT e.except_id, e.type, e.time_start, e.time_stop, e.daynumber, e.dateofexcept
     FROM {onlinerecord_exceptions} e
     WHERE e.plan_id=%d',$parent_plan_id);
-
     while ($plan = db_fetch_object($result))
     {
-      $tableData[] = array(
-        $plan->type,//@TODO Readeable typename
-        //$plan->time_start,
-        strval((int)($plan->time_start/3600)).":".str_pad(strval((int)(($plan->time_start%3600)/60)),2,'0',STR_PAD_LEFT),
-        //$plan->time_stop,
-        strval((int)($plan->time_stop/3600)).":".str_pad(strval((int)(($plan->time_stop%3600)/60)),2,'0',STR_PAD_LEFT),
-        //$plan->daynumber,
-        (intval($plan->daynumber)==0) ? "-" : $plan->daynumber,
-        (intval($plan->dateofexcept)==0) ? "-" : date($dateformat,$plan->dateofexcept),
-        $actions,
-      );
-    
-      //$plan_id=intval($form_state['values']['plan_id']);
-
       $wts=intval($plan->time_start);
       $wtf=intval($plan->time_stop);
       $type_of_exception=intval($plan->type);
@@ -768,14 +753,14 @@ function onlinerecord_plans_form_clone_submit($form, &$form_state)
         case 0: //error - type not selected
           break;
         case 1://everyday
-          $result=db_query("INSERT INTO {onlinerecord_exceptions}
+          $result1=db_query("INSERT INTO {onlinerecord_exceptions}
             (plan_id,type,time_start,time_stop)
             VALUES (%d,%d,%d,%d)",$inserted_id,$type_of_exception,
               $wts,// Start time
               $wtf);// Finish time
           break;
         case 2://everyweek we need correct daynumber (1-Monday, 7-Sunday)
-          $result=db_query("INSERT INTO {onlinerecord_exceptions}
+          $result1=db_query("INSERT INTO {onlinerecord_exceptions}
             (plan_id,type,time_start,time_stop,daynumber)
             VALUES (%d,%d,%d,%d,%d)",$inserted_id,$type_of_exception,
               $wts,
@@ -787,7 +772,7 @@ function onlinerecord_plans_form_clone_submit($form, &$form_state)
         case 4: // @TODO everyyear
           break;
         case 5://we need correct dateofexception 
-          $result=db_query("INSERT INTO {onlinerecord_exceptions}
+          $result1=db_query("INSERT INTO {onlinerecord_exceptions}
             (plan_id,type,time_start,time_stop,dateofexcept)
             VALUES (%d,%d,%d,%d,%d)",$inserted_id,$type_of_exception,
               $wts,// Start time
@@ -823,6 +808,7 @@ function onlinerecord_plans_form_view()
   $datef=date($dateformat);
 
   $default_choose_date = !empty($form_state['values']['choose_date']) ? $form_state['values']['choose_date'] : $datef;
+  dpm($default_choose_date);
 
   $form['choose_date'] = array(
       '#title' => t('Enabled on'),
@@ -989,7 +975,7 @@ function onlinerecord_plans_form_view_callback1()
         $excepts_ids,
         $excepts_types,
         //$choosed_date,
-        strtotime($choosed_date),
+        //strtotime($choosed_date),
         ($flag) ? "OK" :"ZANAYTO",
       );
     }
@@ -1023,22 +1009,6 @@ function onlinerecord_plans_form_view_callback1()
 */
 }
 
-function ahah_example_autotextfields_callback() {
-  $form = ahah_example_callback_helper();
-
-  $textfields = $form['textfields'];
-
-  // Remove the prefix/suffix wrapper so we don't double it up.
-  unset($textfields['#prefix'], $textfields['#suffix']);
-
-  // Render the output.
-  $output = theme('status_messages');
-  $output .= drupal_render($textfields);
-
-  // Final rendering callback.
-  drupal_json(array('status' => TRUE, 'data' => $output));
-  exit();
-}
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////// Exceptions //////////////////////////////////
@@ -1489,7 +1459,8 @@ function onlinerecord_exceptions_per_plan_list(&$form_state)
     FROM {onlinerecord_exceptions} e,  {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
     WHERE p.plan_id=%d
     AND p.dept_id=d.dept_id
-    AND d.org_id=o.org_id',$arg);
+    AND d.org_id=o.org_id
+    AND e.plan_id=p.plan_id',$arg);
 
     $tableHeader = array('plan_name', 'deptname','type', 'time_start', 'time_stop', 'daynumber', 'dateofexcept', 'actions');
 
