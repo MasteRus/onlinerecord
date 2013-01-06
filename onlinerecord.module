@@ -510,7 +510,7 @@ function onlinerecord_choose_callback2()
         $ddate=$pid->disbled_date;
 
         {
-    // Get all exceptions from choosen plan
+        // Get all exceptions from choosen plan
           $result2=db_query("SELECT e.except_id, e.type, e.time_start, e.time_stop, e.daynumber, e.dateofexcept
             FROM {onlinerecord_exceptions} e
             WHERE e.plan_id in ('%s')
@@ -524,6 +524,22 @@ function onlinerecord_choose_callback2()
             $excepts[$j++]=$except;
           }
           $exceptscount=$j;
+
+          $result3=db_query("SELECT plan_id, kvant
+            FROM {onlinerecord_records} 
+            WHERE plan_id in ('%s')
+            AND recorddate=%d
+            ORDER BY plan_id",$arg,$ch_t);
+          $j=0;
+          $records=array();
+          //exceptions to array
+          
+          while ($record = db_fetch_object($result3))
+          {
+
+            //$records[intval($record->plan_id)][intval($record->kvant)]=true;
+              $records[intval($record->kvant)]=true;
+          }
 
           //preparing count of kvants
           $n=($wtf-$wts)/($kvant_value*60);
@@ -587,25 +603,103 @@ function onlinerecord_choose_callback2()
               $wts,//work_time_start
               $wtf,//work_time_finish
               $kvant_value,
-              $edate,
-              $ddate,
+              $edate,//enabled date
+              $ddate,//disabled date
 
               $k,// Kvant number
               strval((int)($temp/3600)).":".str_pad(strval((int)(($temp%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
-              $temp,
+              $temp,//time in seconds
               $excepts_ids,
               $excepts_types,
               //$choosed_date,
               //strtotime($choosed_date),
-              ($flag) ? "OK" :"ZANAYTO",
+              (($flag)&&(!$records[$k])) ? 1 :0,//time in seconds
             );
           }
         }
     }
-    dpm($tableData[9][9]);
+    
     usort($tableData,'func_timecompare');
+    dpm($tableData);
+    $display_array=array();
+    $flag=true;
+    $counter=0;
+    $temp_time=-1;
+    $i=0;
+    //Sortirovka dannih
+    foreach ($tableData as $arr_str)
+    {
+        $i++;
+        //$temp_time;
+        if ($arr_str[9]!=$temp_time) {
+            $flag=false;
+            
+        }
+        if ($flag)  {
+            //dpm("arr[12]".$arr_str[12]);
+            if ($arr_str[12]==1)    {
+                $plans_ids_array[$counter]=$arr_str[0];
+                $header_tables_array[$counter]=$arr_str[1];
+                $counter++;
+                //dpm("counter=".$counter);
+                //dpm($plans_ids_array);
+            }
+        } else {
+            if ($temp_time!=-1)
+                {
+                    dpm($plans_ids_array);
+                    $display_array[]=array(
+                      $plans_ids_array,//plan_id
+                      $header_tables_array,//dept org
+                      //$wts,//work_time_start
+                      //$wtf,//work_time_finish
+                      //$kvant_value,
+                      //$edate,//enabled date
+                      //$ddate,//disabled date
+
+                      //$k,// Kvant number
+                      strval((int)($temp_time/3600)).":".str_pad(strval((int)(($temp_time%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
+                      //$time_values_array,
+                      $temp_time,//time in seconds
+                      $form['button'.$temp_time] = array(
+                        '#type' => 'submit',
+                        '#value' => t('Click Me'),
+                        '#name' => 'button_'.$temp_time,
+                       ),
+                      //$excepts_ids_arrays,
+                      //$excepts_types_arrays,
+                      //$choosed_date,
+                      //strtotime($choosed_date),
+                      //($flag) ? 1 :0,//time in seconds
+
+                      );
+                }
+            $flag=true;
+            $counter=0;
+
+            $plans_ids_array=array();//plan_id
+            $header_tables_array=array();//plan display name
+
+            $temp_time=$arr_str[9];
+            if ($arr_str[12]==1)    {
+              $plans_ids_array[$counter]=$arr_str[0];
+              $header_tables_array[$counter]=$arr_str[1];
+              $counter++;
+            }
+        }
+    }
+    $display_array[]=array(
+              $plans_ids_array,//plan_id
+              $header_tables_array,//dept org
+              strval((int)($temp_time/3600)).":".str_pad(strval((int)(($temp_time%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
+              $temp_time,//time in seconds
+
+              );
+    //($tableData,'func_timecompare');
     //array_multisort($tableData[9],SORT_ASC);
-  drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $tableData)));
+    dpm($display_array);
+  drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $display_array)));
+  //drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $tableData)));
   //$pids_str=implode(',',$pids['plan_id']);
 
   // // // // // // // // // // // //
@@ -621,6 +715,15 @@ function onlinerecord_choose_callback2()
 */
   //if (($edate<=strtotime($choosed_date))&&(strtotime($choosed_date)<=$ddate))
   
+}
+
+
+function onlinerecord_theme() {
+  return array(
+    'onlinerecord_choose' => array(
+      'arguments' => array('form' => NULL),
+    ),
+  );
 }
 
 
