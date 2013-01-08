@@ -351,21 +351,6 @@ function onlinerecord_menu()
  * Does the very standard things that must be done in any normal callback.
  * Used by each callback in this example module.
  */
-function onlinerecord_callback_helper() {
-  $form_state = array('storage' => NULL, 'submitted' => FALSE);
-  $form_build_id = $_POST['form_build_id'];
-  $form = form_get_cache($form_build_id, $form_state);
-  $args = $form['#parameters'];
-  $form_id = array_shift($args);
-  $form_state['post'] = $form['#post'] = $_POST;
-  // Enable the submit/validate handlers to determine whether AHAH-submittted.
-  $form_state['ahah_submission'] = TRUE;
-  $form['#programmed'] = $form['#redirect'] = FALSE;
-  drupal_process_form($form_id, $form, $form_state);
-  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
-  return $form;
-}
-
 function onlinerecord_form()
 {
   /*
@@ -397,103 +382,93 @@ function onlinerecord_form()
 
 function onlinerecord_choose( &$form_state)
 {
-  if (isset($form_state['storage']['page_two'])) {
-    return onlinerecord_choose_2();
-  }
-  $result=db_query('SELECT service_id, name, cabinet FROM {onlinerecord_services}');
+  // Check third page
+  dpm ('page #3');
+  dpm ($form_state['storage']['page_three']);
 
-  $services=array();
-  $services[0]='---';
-  $i=0;
-  while ($service=db_fetch_array($result)) {
-    $i=intval($service['service_id']);
-    $services[$i]=$service['name'];
-  }
-
-  $default_choose_service_id = !empty($form_state['values']['choose_service_id']) ? $form_state['values']['choose_service_id'] : 0;
-  $form['choose_service_id'] = array(
-    '#title' => t('Select service'),
-    '#type' => 'select',
-    '#options' => $services,
-    '#default_value' => $default_choose_service_id,
-    /*
-    '#ahah' => array(
-        'path' => 'onlinerecord/callback1',
-        'wrapper' => 'service_id_holder',
-        'event' => 'change', // default value: does not need to be set explicitly.
+  if (isset($form_state['storage']['page_three']))
+  {
+    // Check second page
+  } elseif (isset($form_state['storage']['page_two'])) {
+      $vals=onlinerecord_choose_callback2();
+      $i=0;
+      $form=array();
+      $form['testbutton'] =  array(
+            '#type' => 'submit',
+            '#value' => 'Test',
+            '#name' => 'test',
+        );
+      $form['header'] = array(
+        '#type' => 'value',
+        '#value' => array(
+           array('data' => 'Время', 'field' => 'time'),
+           array('data' => 'Заголовок', 'field' => 'time_value'),
+           array('data' => 'Дата создания', 'field' => 'kvant_number', 'sort' => 'asc'),
+           array('data' => 'button', 'field' => 'button'),
         ),
-     *
-     */
-  );
-  $dateformat='Y-m-d';
-  $datef=date($dateformat);
-  //$default_choose_date = !empty($form_state['values']['choose_date']) ? $form_state['values']['choose_date'] : $datef;
+      );
+      foreach ($vals as $val)
+      {
+        $form['time'][$val[4]] = array('#value' =>$val[2]);
+        $form['time_value'][$val[4]] = array('#value' => $val[3]);
+        $form['kvant_number'][$val[4]] = array('#value' => $val[4]);
+        $form['button'][$val[4]] =  array(
+            '#type' => 'submit',
+            '#value' => 'save',
+            '#name' => 'button_'.$val[4]
+        );
+        $i++;
+      }
+  } else // this is first page
+  {
+      $result=db_query('SELECT service_id, name, cabinet FROM {onlinerecord_services}');
 
+      $services=array();
+      $services[0]='---';
+      $i=0;
+      while ($service=db_fetch_array($result)) {
+        $i=intval($service['service_id']);
+        $services[$i]=$service['name'];
+      }
 
-  $form['choose_date'] = array(
-    '#title' => t('Enabled on'),
-    '#type' => 'date_select',
-    '#default_value' => $datef,
-    '#date_format' => $dateformat,
-    '#date_timezone' => 'Asia/Novosibirsk',
-    '#date_increment' => $kvant_value,
-    '#date_year_range' => '0:+1',
-    '#attributes' => array('class' => 'date-dropdown'),
-  );
-  /*
-  $form['service_id_holder']['continue'] = array(
-    '#type' => 'submit',
-    '#value' => t('Click Me'),
-    '#ahah' => array(
-      'path' => 'onlinerecord/callback2',
-      'wrapper' => 'record_holder',
-          //'event' => 'change', // default value: does not need to be set explicitly.
-      ),
-    );
-  */
+      $default_choose_service_id = !empty($form_state['values']['choose_service_id']) ? $form_state['values']['choose_service_id'] : 0;
+      $form['choose_service_id'] = array(
+        '#title' => t('Select service'),
+        '#type' => 'select',
+        '#options' => $services,
+        '#default_value' => $default_choose_service_id,
 
-  $form['next'] = array(
-    '#type' => 'submit',
-    '#value' => 'Next >>',
-    '#name' => 'NextButton'
-  );
+      );
+      $dateformat='Y-m-d';
+      $datef=date($dateformat);
+
+      $form['choose_date'] = array(
+        '#title' => t('Enabled on'),
+        '#type' => 'date_select',
+        '#default_value' => $datef,
+        '#date_format' => $dateformat,
+        '#date_timezone' => 'Asia/Novosibirsk',
+        '#date_increment' => $kvant_value,
+        '#date_year_range' => '0:+1',
+        '#attributes' => array('class' => 'date-dropdown'),
+      );
+
+      $form['next'] = array(
+        '#type' => 'submit',
+        '#value' => 'Next >>',
+        '#name' => 'NextButton'
+      );
+  }
 
   return $form;
 
 }
 
-function onlinerecord_choose_2()
-{
-  $vals=onlinerecord_choose_callback2();
-  dpm($vals);
-  $i=0;
-  $form=array();
-  $form['data_wrapper']['header'] = array(
-    '#type' => 'value',
-    '#value' => array(
-       theme('table_select_header_cell'),
-       array('data' => 'time', 'field' => 'time'),
-       array('data' => 'Заголовок', 'field' => 'time_value'),
-       array('data' => 'Дата создания', 'field' => 'kvant_number', 'sort' => 'asc'),
-       array('data' => 'button', 'field' => 'button'),
-    ),
-  );
-  foreach ($vals as $val)
-  {
-    $form['data_wrapper']['time'][$i] = array('#value' =>$val[2]);
-    $form['data_wrapper']['time_value'][$i] = array('#value' => $val[3]);
-    $form['data_wrapper']['kvant_number'][$i] = array('#value' => $val[4]);
-    $form['data_wrapper']['button'][$i] =  array(
-        '#type' => 'submit',
-        '#value' => 'Save',
-        '#name' => 'button_'.$i,
-    );
-    $i++;
-  }
-}
-
 function onlinerecord_choose_submit($form, &$form_state)
 {
+
+  $num=explode('-',$form_state['clicked_button']['#id']);
+  dpm ($num[1]);
   if ($form_state['clicked_button']['#id'] == 'edit-next') {
     $form_state['storage']['page_two'] = TRUE; // We set this to determine
                                                // which elements to display
@@ -502,15 +477,22 @@ function onlinerecord_choose_submit($form, &$form_state)
     // Values below in the $form_state['storage'] array are saved
     // to carry forward to subsequent pages in the form.
     $form_state['storage']['page_one_values'] = $form_state['values'];
-    dpm($form_state['storage']['page_one_values']);
+
+    unset($form_state['clicked_button']);
+
   }
   // Handle page 2 submissions.
-  else {
-
+  elseif ($form_state['clicked_button']['#id'] == 'edit-'.strval(intval($form_state['clicked_button']['#id']))) {
     $page_one_values = $form_state['storage']['page_one_values'];
-    
+
+    $form_state['storage']['page_two_values'] = $form_state['values'];
+    $form_state['storage']['page_three'] = TRUE;
   }
-  
+  else
+  {
+  dpm($form_state['values']);
+
+  }
 }
 
 function onlinerecord_choose_callback2()
@@ -920,16 +902,16 @@ function onlinerecord_theme() {
 
 function theme_onlinerecord_choose($form) {
   $rows = array();
-  foreach (element_children($form['data_wrapper']['kvant_number']) as $key) {
+  foreach (element_children($form['kvant_number']) as $key) {
     $rows[] = array(
-      drupal_render($form['data_wrapper']['time'][$key]),
-      drupal_render($form['data_wrapper']['time_value'][$key]),   // заголовок
-      drupal_render($form['data_wrapper']['kvant_number'][$key]), // дата создания
-      drupal_render($form['data_wrapper']['button'][$key])
+      drupal_render($form['time'][$key]),
+      drupal_render($form['time_value'][$key]),   // заголовок
+      drupal_render($form['kvant_number'][$key]), // дата создания
+      drupal_render($form['button'][$key])
     );
   }
 
-  $output = theme('table', $form['data_wrapper']['header']['#value'], $rows); // выводим таблицу
+  $output = theme('table', $form['header']['#value'], $rows); // выводим таблицу
   $output .= drupal_render($form);                            // выводим остальную часть формы
 
   return $output;
