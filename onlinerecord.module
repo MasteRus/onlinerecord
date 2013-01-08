@@ -1,13 +1,6 @@
 <?php
 // $Id$ 
 
-/*
-function onlinerecord_perm() {
-  return array('can');
-}
- *
- */
-
 
 function onlinerecord_menu()
 {
@@ -336,6 +329,7 @@ function onlinerecord_menu()
       'type' => MENU_NORMAL_ITEM,
       'file' => 'onlinerecord.admin.inc',
     );
+    /*
     $items['onlinerecord/callback1'] = array(
       'page callback' => 'onlinerecord_choose_callback1',
       'access callback' => TRUE,
@@ -348,6 +342,8 @@ function onlinerecord_menu()
       'file' => 'onlinerecord.admin.inc',
       'type' => MENU_CALLBACK,
     );
+     *
+     */
     return $items;
 }
 
@@ -399,9 +395,11 @@ function onlinerecord_form()
   //return $form;
 }
 
-function onlinerecord_choose()
+function onlinerecord_choose( &$form_state)
 {
-
+  if (isset($form_state['storage']['page_two'])) {
+    return onlinerecord_choose_2();
+  }
   $result=db_query('SELECT service_id, name, cabinet FROM {onlinerecord_services}');
 
   $services=array();
@@ -427,16 +425,12 @@ function onlinerecord_choose()
      *
      */
   );
-  $form['service_id_holder'] = array(
-    '#value' => '<div id="service_id_holder"></div>'
-  );
-
   $dateformat='Y-m-d';
   $datef=date($dateformat);
   //$default_choose_date = !empty($form_state['values']['choose_date']) ? $form_state['values']['choose_date'] : $datef;
 
 
-  $form['service_id_holder']['choose_date'] = array(
+  $form['choose_date'] = array(
     '#title' => t('Enabled on'),
     '#type' => 'date_select',
     '#default_value' => $datef,
@@ -446,6 +440,7 @@ function onlinerecord_choose()
     '#date_year_range' => '0:+1',
     '#attributes' => array('class' => 'date-dropdown'),
   );
+  /*
   $form['service_id_holder']['continue'] = array(
     '#type' => 'submit',
     '#value' => t('Click Me'),
@@ -455,18 +450,67 @@ function onlinerecord_choose()
           //'event' => 'change', // default value: does not need to be set explicitly.
       ),
     );
-  
+  */
 
-  $form['record_holder'] = array(
-    '#value' => '<div id="record_holder"></div>'
+  $form['next'] = array(
+    '#type' => 'submit',
+    '#value' => 'Next >>',
+    '#name' => 'NextButton'
   );
 
   return $form;
 
 }
-function onlinerecord_choose_callback1()
-{
 
+function onlinerecord_choose_2()
+{
+  $vals=onlinerecord_choose_callback2();
+  dpm($vals);
+  $i=0;
+  $form=array();
+  $form['data_wrapper']['header'] = array(
+    '#type' => 'value',
+    '#value' => array(
+       theme('table_select_header_cell'),
+       array('data' => 'time', 'field' => 'time'),
+       array('data' => 'Заголовок', 'field' => 'time_value'),
+       array('data' => 'Дата создания', 'field' => 'kvant_number', 'sort' => 'asc'),
+       array('data' => 'button', 'field' => 'button'),
+    ),
+  );
+  foreach ($vals as $val)
+  {
+    $form['data_wrapper']['time'][$i] = array('#value' =>$val[2]);
+    $form['data_wrapper']['time_value'][$i] = array('#value' => $val[3]);
+    $form['data_wrapper']['kvant_number'][$i] = array('#value' => $val[4]);
+    $form['data_wrapper']['button'][$i] =  array(
+        '#type' => 'submit',
+        '#value' => 'Save',
+        '#name' => 'button_'.$i,
+    );
+    $i++;
+  }
+}
+
+function onlinerecord_choose_submit($form, &$form_state)
+{
+  if ($form_state['clicked_button']['#id'] == 'edit-next') {
+    $form_state['storage']['page_two'] = TRUE; // We set this to determine
+                                               // which elements to display
+                                               // when the page reloads.
+
+    // Values below in the $form_state['storage'] array are saved
+    // to carry forward to subsequent pages in the form.
+    $form_state['storage']['page_one_values'] = $form_state['values'];
+    dpm($form_state['storage']['page_one_values']);
+  }
+  // Handle page 2 submissions.
+  else {
+
+    $page_one_values = $form_state['storage']['page_one_values'];
+    
+  }
+  
 }
 
 function onlinerecord_choose_callback2()
@@ -620,7 +664,7 @@ function onlinerecord_choose_callback2()
     }
     
     usort($tableData,'func_timecompare');
-    dpm($tableData);
+    //dpm($tableData);
     $display_array=array();
     $flag=true;
     $counter=0;
@@ -636,18 +680,14 @@ function onlinerecord_choose_callback2()
             
         }
         if ($flag)  {
-            //dpm("arr[12]".$arr_str[12]);
             if ($arr_str[12]==1)    {
                 $plans_ids_array[$counter]=$arr_str[0];
                 $header_tables_array[$counter]=$arr_str[1];
                 $counter++;
-                //dpm("counter=".$counter);
-                //dpm($plans_ids_array);
             }
         } else {
             if ($temp_time!=-1)
                 {
-                    dpm($plans_ids_array);
                     $display_array[]=array(
                       $plans_ids_array,//plan_id
                       $header_tables_array,//dept org
@@ -661,11 +701,7 @@ function onlinerecord_choose_callback2()
                       strval((int)($temp_time/3600)).":".str_pad(strval((int)(($temp_time%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
                       //$time_values_array,
                       $temp_time,//time in seconds
-                      $form['button'.$temp_time] = array(
-                        '#type' => 'submit',
-                        '#value' => t('Click Me'),
-                        '#name' => 'button_'.$temp_time,
-                       ),
+                      $arr_str[7],//@TODO BUG: different quants possible
                       //$excepts_ids_arrays,
                       //$excepts_types_arrays,
                       //$choosed_date,
@@ -693,30 +729,186 @@ function onlinerecord_choose_callback2()
               $header_tables_array,//dept org
               strval((int)($temp_time/3600)).":".str_pad(strval((int)(($temp_time%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
               $temp_time,//time in seconds
+              $arr_str[7]+1,//@TODO BUG: different quants possible
 
               );
     //($tableData,'func_timecompare');
     //array_multisort($tableData[9],SORT_ASC);
-    dpm($display_array);
-  drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $display_array)));
+    dpm ($display_array);
+    return $display_array;
+  //drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $display_array)));
   //drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $tableData)));
   //$pids_str=implode(',',$pids['plan_id']);
 
-  // // // // // // // // // // // //
-  
-  /*
-  $plan = db_fetch_object($result);
-    $header_table=$plan->planname." at ".$plan->deptname.", ".$plan->orgname;
-    $wts=$plan->worktimestart;
-    $wtf=$plan->worktimefinish;
-    $kvant_value=$plan->kvant_value;
-    $edate=$plan->enabled_date;
-    $ddate=$plan->disbled_date;
-*/
-  //if (($edate<=strtotime($choosed_date))&&(strtotime($choosed_date)<=$ddate))
-  
 }
 
+
+
+
+
+function func_timecompare($val1,$val2)
+{
+  if ($val1[9]==$val2[9]) return 0;
+  else return ($val1[9]<$val2[9]) ? -1 :1;
+}
+
+
+
+function form_example_tutorial_10($form_state) {
+
+  // Display page 2 if $form_state['storage']['page_two'] is set
+  if (isset($form_state['storage']['page_two'])) {
+    return form_example_tutorial_10_page_two();
+  }
+  $form['description'] = array(
+    '#type' => 'item',
+    '#title' => t('A basic multistep form (page 1)'),
+  );
+
+  // Page 1 is displayed if $form_state['storage']['page_two'] is not set
+  $form['name'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Name'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['name']['first'] = array(
+    '#type' => 'textfield',
+    '#title' => t('First name'),
+    '#default_value' => !empty($form_state['values']['first']) ? $form_state['values']['first'] : '', // changed
+    '#description' => "Please enter your first name.",
+    '#size' => 20,
+    '#maxlength' => 20,
+  );
+  $form['name']['last'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Last name'),
+    '#default_value' => !empty($form_state['values']['last']) ? $form_state['values']['last'] : '', // added
+  );
+  $form['year_of_birth'] = array(
+    '#type' => 'textfield',
+    '#title' => "Year of birth",
+    '#description' => 'Format is "YYYY"',
+    '#default_value' => !empty($form_state['values']['year_of_birth']) ? $form_state['values']['year_of_birth'] : '', // added
+  );
+  // Add new elements to the form
+  if (!empty($form_state['storage']['new_name'])) {
+    $form['name2'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Name #2'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    );
+    $form['name2']['first2'] = array(
+      '#type' => 'textfield',
+      '#title' => t('First name'),
+      '#description' => "Please enter your first name.",
+      '#size' => 20,
+      '#maxlength' => 20,
+      '#default_value' => !empty($form_state['values']['first2']) ? $form_state['values']['first2'] : '',
+    );
+    $form['name2']['last2'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Last name'),
+      '#default_value' => !empty($form_state['values']['last2']) ? $form_state['values']['last2'] : '',
+    );
+    $form['year_of_birth2'] = array(
+      '#type' => 'textfield',
+      '#title' => "Year of birth",
+      '#description' => 'Format is "YYYY"',
+      '#default_value' => !empty($form_state['values']['year_of_birth2']) ? $form_state['values']['year_of_birth2'] : '',
+    );
+  }
+  $form['clear'] = array(
+    '#type' => 'submit',
+    '#value' => 'Reset form',
+    '#validate' => array('form_example_tutorial_10_clear'),
+  );
+  if (empty($form_state['storage']['new_name'])) {
+    $form['new_name'] = array(
+      '#type' => 'submit',
+      '#value' => 'Add another name',
+      '#validate' => array('form_example_tutorial_10_new_name'),
+    );
+  }
+  $form['next'] = array(
+    '#type' => 'submit',
+    '#value' => 'Next >>',
+  );
+  return $form;
+}
+
+// New function created to help make the code more manageable.
+function form_example_tutorial_10_page_two() {
+  $form['description'] = array(
+    '#type' => 'item',
+    '#title' => t('A basic multistep form (page 2)'),
+  );
+
+  $form['color'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Your favorite color',
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+  );
+  return $form;
+}
+
+
+/**
+ * Modifies this function so that it will respond appropriately based on
+ * which page was submitted. If the first page is being submitted,
+ * values in the 'storage' array are saved and the form gets
+ * automatically reloaded.
+ *
+ * If page 2 was submitted, we display a message and redirect the
+ * user to another page.
+ */
+function form_example_tutorial_10_submit($form, &$form_state) {
+  // Handle page 1 submissions
+  if ($form_state['clicked_button']['#id'] == 'edit-next') {
+    $form_state['storage']['page_two'] = TRUE; // We set this to determine
+                                               // which elements to display
+                                               // when the page reloads.
+
+    // Values below in the $form_state['storage'] array are saved
+    // to carry forward to subsequent pages in the form.
+    $form_state['storage']['page_one_values'] = $form_state['values'];
+  }
+  // Handle page 2 submissions.
+  else {
+    /*
+     Normally, some code would go here to alter the database with the data
+     collected from the form. Sets a message with drupal_set_message()
+     to validate working code.
+     */
+    $page_one_values = $form_state['storage']['page_one_values'];
+    drupal_set_message(t('The form has been submitted. name="@first @last", year of birth=@year_of_birth',
+      array('@first' => $page_one_values['first'], '@last' => $page_one_values['last'], '@year_of_birth' => $page_one_values['year_of_birth'])));
+
+    if (!empty($page_one_values['first'])) {
+      $first2 = isset($page_one_values['first2']) ? $page_one_values['first2'] : '';
+      $last2  = isset($page_one_values['last2']) ? $page_one_values['last2'] : '';
+      $year2  = isset($page_one_values['year_of_birth2']) ? $page_one_values['year_of_birth2'] : '';
+      drupal_set_message(t('Second name: name="@first @last", year of birth=@year_of_birth',
+        array('@first' => $first2, '@last' => $last2, '@year_of_birth' => $year2)));
+    }
+    drupal_set_message(t('And the favorite color is @color', array('@color' => $form_state['values']['color'])));
+
+    // $form_state['storage'] must be unset for redirection to occur. Otherwise
+    // $form_state['rebuild'] is automatically set and this form will be
+    // rebuilt.
+    unset($form_state['storage']);
+    $form_state['redirect'] = 'node'; // Redirects the user to /node.
+  }
+}
+
+/**
+ * Реализация hook_theme()
+ * Регистрируем функцию темизации формы mymodule_form_table
+ */
 
 function onlinerecord_theme() {
   return array(
@@ -726,10 +918,20 @@ function onlinerecord_theme() {
   );
 }
 
+function theme_onlinerecord_choose($form) {
+  $rows = array();
+  foreach (element_children($form['data_wrapper']['kvant_number']) as $key) {
+    $rows[] = array(
+      drupal_render($form['data_wrapper']['time'][$key]),
+      drupal_render($form['data_wrapper']['time_value'][$key]),   // заголовок
+      drupal_render($form['data_wrapper']['kvant_number'][$key]), // дата создания
+      drupal_render($form['data_wrapper']['button'][$key])
+    );
+  }
 
-function func_timecompare($val1,$val2)
-{
-  if ($val1[9]==$val2[9]) return 0;
-  else return ($val1[9]<$val2[9]) ? -1 :1;
+  $output = theme('table', $form['data_wrapper']['header']['#value'], $rows); // выводим таблицу
+  $output .= drupal_render($form);                            // выводим остальную часть формы
+
+  return $output;
 }
 ?>
