@@ -120,7 +120,8 @@ function onlinerecord_schema() {
         'default' => 0),
       'birthyear' => array(
         'description' => 'The name of user ',
-        'type' => 'int',
+        'type' => 'varchar',
+        'length' => 255,
         'not null' => TRUE,
         'default' => 0),
       'services_id' => array(

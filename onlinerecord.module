@@ -353,18 +353,6 @@ function onlinerecord_menu()
  */
 function onlinerecord_form()
 {
-  /*
-    $form['links_fieldset'] = array(
-      '#title' => t("links"),
-      // The prefix/suffix provide the div that we're replacing, named by
-      // #ajax['wrapper'] above.
-      '#prefix' => '<div id="links-div">',
-      '#suffix' => '</div>',
-      '#type' => 'fieldset',
-      '#description' => t('This is where we get automatically Load/generate textfields'),
-    );
-   */
-    //l('удалить', 'admin/settings/onlinerecord/plans_services/'.$org->plan_id.'/' . $org->service_id. '/delete/', array('alias' => true));
     $tableHeader = array('Onlinerecord');
     $tableData = array();
     $tableData[] = array(l('Orgs' , 'admin/settings/onlinerecord/orgs/',array('alias'=>true)));
@@ -373,103 +361,149 @@ function onlinerecord_form()
     $tableData[] = array(l('Exceptions' , 'admin/settings/onlinerecord/exceptions/',array('alias'=>true)));
     $tableData[] = array(l('Services' , 'admin/settings/onlinerecord/services/',array('alias'=>true)));
     $tableData[] = array(l('Plans-Services' , 'admin/settings/onlinerecord/plans_services/',array('alias'=>true)));
-
-
     
     return theme('table', $tableHeader, $tableData);
-  //return $form;
 }
 
-function onlinerecord_choose( &$form_state)
+function onlinerecord_choose($form_state)
 {
   // Check third page
-  dpm ('page #3');
-  dpm ($form_state['storage']['page_three']);
-
   if (isset($form_state['storage']['page_three']))
   {
+    $form['name'] =  array(
+      '#type' => 'textfield',
+      '#title' => t('FIO'),
+      '#default_value' =>'',
+    );
+    $form['birthyear'] =  array(
+      '#type' => 'textfield',
+      '#title' => t('birth year'),
+      '#default_value' =>'',
+    );
+
+    $form['submit'] =  array(
+      '#type' => 'submit',
+      '#value' => 'save',
+      '#name' => 'savebutton',
+    );
+
+   
     // Check second page
-  } elseif (isset($form_state['storage']['page_two'])) {
-      $vals=onlinerecord_choose_callback2();
-      $i=0;
-      $form=array();
-      $form['testbutton'] =  array(
-            '#type' => 'submit',
-            '#value' => 'Test',
-            '#name' => 'test',
+  } else {
+
+    if (isset($form_state['storage']['page_two'])) {
+        $vals=onlinerecord_choose_callback2();
+        $i=0;
+        $form=array();
+
+        $form['header'] = array(
+          '#type' => 'value',
+          '#value' => array(
+             array('data' => 'Время', 'field' => 'time'),
+             array('data' => 'Заголовок', 'field' => 'time_value'),
+             array('data' => 'Дата создания', 'field' => 'kvant_number', 'sort' => 'asc'),
+             array('data' => 'button', 'field' => 'button'),
+          ),
         );
-      $form['header'] = array(
-        '#type' => 'value',
-        '#value' => array(
-           array('data' => 'Время', 'field' => 'time'),
-           array('data' => 'Заголовок', 'field' => 'time_value'),
-           array('data' => 'Дата создания', 'field' => 'kvant_number', 'sort' => 'asc'),
-           array('data' => 'button', 'field' => 'button'),
-        ),
-      );
-      foreach ($vals as $val)
-      {
-        $form['time'][$val[4]] = array('#value' =>$val[2]);
-        $form['time_value'][$val[4]] = array('#value' => $val[3]);
-        $form['kvant_number'][$val[4]] = array('#value' => $val[4]);
-        $form['button'][$val[4]] =  array(
-            '#type' => 'submit',
-            '#value' => 'save',
-            '#name' => 'button_'.$val[4]
+        //$form['plan_id']=array();
+        //
+        //$form['plan_header']=array();
+        $plans=array();
+        $form['plan_id']['#tree']=TRUE;
+        $form['plan_header']['#tree']=TRUE;
+        $form['time_val']['#tree']=TRUE;
+        foreach ($vals as $val)
+        {
+          
+          $form['plan_id'][$val[4]] = array('#type' => 'value','#value' =>$val[0][0]);
+          $form['plan_header'][$val[4]] = array('#type' => 'value','#value' =>$val[1][0]);
+          $form['time_val'][$val[4]] = array('#type' => 'value','#value' => $val[3]);
+          
+
+          $form['time'][$val[4]] = array('#value' =>$val[2]);
+          $form['time_value'][$val[4]] = array('#value' => $val[3]);
+          $form['kvant_number'][$val[4]] = array('#value' => $val[4]);
+          if (!empty($val[0]))
+          {
+            $form['button'][$val[4]] =  array(
+                '#type' => 'submit',
+                '#value' => 'save',
+                '#name' => 'button_'.$val[4]
+            );
+          } else {
+            $form['button'][$val[4]] =  array('#value' => "-");
+          }
+          $i++;
+        }
+        //$form['plan_id']=array('#type' => 'value','#value' =>$plans());
+    } else // this is first page
+    {
+        $result=db_query('SELECT service_id, name, cabinet FROM {onlinerecord_services}');
+
+        $services=array();
+        $services[0]='---';
+        $i=0;
+        while ($service=db_fetch_array($result)) {
+          $i=intval($service['service_id']);
+          $services[$i]=$service['name'];
+        }
+
+        $default_choose_service_id = !empty($form_state['values']['choose_service_id']) ? $form_state['values']['choose_service_id'] : 0;
+        $form['choose_service_id'] = array(
+          '#title' => t('Select service'),
+          '#type' => 'select',
+          '#options' => $services,
+          '#default_value' => $default_choose_service_id,
+
         );
-        $i++;
-      }
-  } else // this is first page
-  {
-      $result=db_query('SELECT service_id, name, cabinet FROM {onlinerecord_services}');
+        $dateformat='Y-m-d';
+        $datef=date($dateformat);
 
-      $services=array();
-      $services[0]='---';
-      $i=0;
-      while ($service=db_fetch_array($result)) {
-        $i=intval($service['service_id']);
-        $services[$i]=$service['name'];
-      }
+        $form['choose_date'] = array(
+          '#title' => t('Enabled on'),
+          '#type' => 'date_select',
+          '#default_value' => $datef,
+          '#date_format' => $dateformat,
+          '#date_timezone' => 'Asia/Novosibirsk',
+          '#date_increment' => $kvant_value,
+          '#date_year_range' => '0:+1',
+          '#attributes' => array('class' => 'date-dropdown'),
+        );
 
-      $default_choose_service_id = !empty($form_state['values']['choose_service_id']) ? $form_state['values']['choose_service_id'] : 0;
-      $form['choose_service_id'] = array(
-        '#title' => t('Select service'),
-        '#type' => 'select',
-        '#options' => $services,
-        '#default_value' => $default_choose_service_id,
-
-      );
-      $dateformat='Y-m-d';
-      $datef=date($dateformat);
-
-      $form['choose_date'] = array(
-        '#title' => t('Enabled on'),
-        '#type' => 'date_select',
-        '#default_value' => $datef,
-        '#date_format' => $dateformat,
-        '#date_timezone' => 'Asia/Novosibirsk',
-        '#date_increment' => $kvant_value,
-        '#date_year_range' => '0:+1',
-        '#attributes' => array('class' => 'date-dropdown'),
-      );
-
-      $form['next'] = array(
-        '#type' => 'submit',
-        '#value' => 'Next >>',
-        '#name' => 'NextButton'
-      );
+        $form['next'] = array(
+          '#type' => 'submit',
+          '#value' => 'Next >>',
+          '#name' => 'NextButton'
+        );
+    }
   }
 
   return $form;
 
 }
 
+
+
 function onlinerecord_choose_submit($form, &$form_state)
 {
-
   $num=explode('-',$form_state['clicked_button']['#id']);
-  dpm ($num[1]);
-  if ($form_state['clicked_button']['#id'] == 'edit-next') {
+  dpm($form_state['clicked_button']['#id']);
+  // Second submit
+  //if ($form_state['clicked_button']['#id'] == 'edit-'.(int)($num[1]).'-'.$num[2])
+  if ($form_state['clicked_button']['#id'] == 'edit-'.(int)($num[1]))
+  {
+    dpm("3");
+    $form_state['storage']['page_three'] = TRUE;
+    $page_one_values = $form_state['storage']['page_one_values'];
+    $form_state['storage']['page_two_values'] = $form_state['values'];
+    $form_state['storage']['pressed_button'] = (int)($num[1]);
+
+    $form_state['storage']['plan_id'] = $form_state['values']['plan_id'][(int)($num[1])];
+    $form_state['storage']['plan_header'] = $form_state['values']['plan_header'][(int)($num[1])];
+    $form_state['storage']['time_val']=$form_state['values']['time_val'][(int)($num[1])];
+
+  } // First submit server
+  elseif($form_state['clicked_button']['#id'] == 'edit-next') {
     $form_state['storage']['page_two'] = TRUE; // We set this to determine
                                                // which elements to display
                                                // when the page reloads.
@@ -482,16 +516,30 @@ function onlinerecord_choose_submit($form, &$form_state)
 
   }
   // Handle page 2 submissions.
-  elseif ($form_state['clicked_button']['#id'] == 'edit-'.strval(intval($form_state['clicked_button']['#id']))) {
-    $page_one_values = $form_state['storage']['page_one_values'];
-
-    $form_state['storage']['page_two_values'] = $form_state['values'];
-    $form_state['storage']['page_three'] = TRUE;
-  }
   else
   {
-  dpm($form_state['values']);
+    $page_one_values = $form_state['storage']['page_one_values'];
+    $page_two_values = $form_state['storage']['page_two_values'];
+    dpm ($page_one_values);
+    dpm ($page_two_values);
 
+    $choose_service_id=intval($page_one_values['choose_service_id']);
+    $choose_date=$page_one_values['choose_date'];
+
+    $plan_id=intval($form_state['storage']['plan_id']);
+    $plan_header=$form_state['storage']['plan_header'];
+    $kvant_number=intval($form_state['storage']['time_val']);
+    dpm($form_state['storage']['time_val']);
+
+    $name=$form_state['values']['name'];
+    $birthyear=$form_state['values']['birthyear'];
+
+
+
+    $result=db_query("INSERT INTO {onlinerecord_records} 
+      (recorddate,services_id,plan_id,kvant,name,birthyear)
+      VALUES (%d,%d,%d,%d,'%s','%s')",
+      strtotime($choose_date),$choose_service_id,$plan_id,$kvant_number,name,birthyear);
   }
 }
 
@@ -542,7 +590,6 @@ function onlinerecord_choose_callback2()
             WHERE e.plan_id in ('%s')
             ORDER BY plan_id",$arg);
           $j=0;
-          //dpm($i);
           $excepts=array();
           //exceptions to array
           while ($except = db_fetch_object($result2))
@@ -566,7 +613,8 @@ function onlinerecord_choose_callback2()
             //$records[intval($record->plan_id)][intval($record->kvant)]=true;
               $records[intval($record->kvant)]=true;
           }
-
+          //dpm('time='.$ch_t.', arg='.$arg.',records');
+          //dpm($records);
           //preparing count of kvants
           $n=($wtf-$wts)/($kvant_value*60);
 
@@ -580,15 +628,12 @@ function onlinerecord_choose_callback2()
             for ($j=0;$j<$exceptscount;$j++)
             {
               //get excepts date
-              //dpm($excepts[$j]->except_id);
+
 
               $tstart=intval($excepts[$j]->time_start);
               $tstop=intval($excepts[$j]->time_stop);
               $dn=intval($excepts[$j]->daynumber);
               $dateofe=intval($excepts[$j]->dateofexcept);
-              //dpm("j=".$j.", dateofe".$dateofe);
-
-              //dpm(strtotime($choosed_date));
 
               //type of exceptions processing
               switch (intval($excepts[$j]->type)) {
@@ -646,7 +691,6 @@ function onlinerecord_choose_callback2()
     }
     
     usort($tableData,'func_timecompare');
-    //dpm($tableData);
     $display_array=array();
     $flag=true;
     $counter=0;
@@ -716,17 +760,13 @@ function onlinerecord_choose_callback2()
               );
     //($tableData,'func_timecompare');
     //array_multisort($tableData[9],SORT_ASC);
-    dpm ($display_array);
+
     return $display_array;
   //drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $display_array)));
   //drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $tableData)));
   //$pids_str=implode(',',$pids['plan_id']);
 
 }
-
-
-
-
 
 function func_timecompare($val1,$val2)
 {
@@ -735,157 +775,6 @@ function func_timecompare($val1,$val2)
 }
 
 
-
-function form_example_tutorial_10($form_state) {
-
-  // Display page 2 if $form_state['storage']['page_two'] is set
-  if (isset($form_state['storage']['page_two'])) {
-    return form_example_tutorial_10_page_two();
-  }
-  $form['description'] = array(
-    '#type' => 'item',
-    '#title' => t('A basic multistep form (page 1)'),
-  );
-
-  // Page 1 is displayed if $form_state['storage']['page_two'] is not set
-  $form['name'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Name'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-  );
-  $form['name']['first'] = array(
-    '#type' => 'textfield',
-    '#title' => t('First name'),
-    '#default_value' => !empty($form_state['values']['first']) ? $form_state['values']['first'] : '', // changed
-    '#description' => "Please enter your first name.",
-    '#size' => 20,
-    '#maxlength' => 20,
-  );
-  $form['name']['last'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Last name'),
-    '#default_value' => !empty($form_state['values']['last']) ? $form_state['values']['last'] : '', // added
-  );
-  $form['year_of_birth'] = array(
-    '#type' => 'textfield',
-    '#title' => "Year of birth",
-    '#description' => 'Format is "YYYY"',
-    '#default_value' => !empty($form_state['values']['year_of_birth']) ? $form_state['values']['year_of_birth'] : '', // added
-  );
-  // Add new elements to the form
-  if (!empty($form_state['storage']['new_name'])) {
-    $form['name2'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Name #2'),
-      '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
-    );
-    $form['name2']['first2'] = array(
-      '#type' => 'textfield',
-      '#title' => t('First name'),
-      '#description' => "Please enter your first name.",
-      '#size' => 20,
-      '#maxlength' => 20,
-      '#default_value' => !empty($form_state['values']['first2']) ? $form_state['values']['first2'] : '',
-    );
-    $form['name2']['last2'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Last name'),
-      '#default_value' => !empty($form_state['values']['last2']) ? $form_state['values']['last2'] : '',
-    );
-    $form['year_of_birth2'] = array(
-      '#type' => 'textfield',
-      '#title' => "Year of birth",
-      '#description' => 'Format is "YYYY"',
-      '#default_value' => !empty($form_state['values']['year_of_birth2']) ? $form_state['values']['year_of_birth2'] : '',
-    );
-  }
-  $form['clear'] = array(
-    '#type' => 'submit',
-    '#value' => 'Reset form',
-    '#validate' => array('form_example_tutorial_10_clear'),
-  );
-  if (empty($form_state['storage']['new_name'])) {
-    $form['new_name'] = array(
-      '#type' => 'submit',
-      '#value' => 'Add another name',
-      '#validate' => array('form_example_tutorial_10_new_name'),
-    );
-  }
-  $form['next'] = array(
-    '#type' => 'submit',
-    '#value' => 'Next >>',
-  );
-  return $form;
-}
-
-// New function created to help make the code more manageable.
-function form_example_tutorial_10_page_two() {
-  $form['description'] = array(
-    '#type' => 'item',
-    '#title' => t('A basic multistep form (page 2)'),
-  );
-
-  $form['color'] = array(
-    '#type' => 'textfield',
-    '#title' => 'Your favorite color',
-  );
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => 'Submit',
-  );
-  return $form;
-}
-
-
-/**
- * Modifies this function so that it will respond appropriately based on
- * which page was submitted. If the first page is being submitted,
- * values in the 'storage' array are saved and the form gets
- * automatically reloaded.
- *
- * If page 2 was submitted, we display a message and redirect the
- * user to another page.
- */
-function form_example_tutorial_10_submit($form, &$form_state) {
-  // Handle page 1 submissions
-  if ($form_state['clicked_button']['#id'] == 'edit-next') {
-    $form_state['storage']['page_two'] = TRUE; // We set this to determine
-                                               // which elements to display
-                                               // when the page reloads.
-
-    // Values below in the $form_state['storage'] array are saved
-    // to carry forward to subsequent pages in the form.
-    $form_state['storage']['page_one_values'] = $form_state['values'];
-  }
-  // Handle page 2 submissions.
-  else {
-    /*
-     Normally, some code would go here to alter the database with the data
-     collected from the form. Sets a message with drupal_set_message()
-     to validate working code.
-     */
-    $page_one_values = $form_state['storage']['page_one_values'];
-    drupal_set_message(t('The form has been submitted. name="@first @last", year of birth=@year_of_birth',
-      array('@first' => $page_one_values['first'], '@last' => $page_one_values['last'], '@year_of_birth' => $page_one_values['year_of_birth'])));
-
-    if (!empty($page_one_values['first'])) {
-      $first2 = isset($page_one_values['first2']) ? $page_one_values['first2'] : '';
-      $last2  = isset($page_one_values['last2']) ? $page_one_values['last2'] : '';
-      $year2  = isset($page_one_values['year_of_birth2']) ? $page_one_values['year_of_birth2'] : '';
-      drupal_set_message(t('Second name: name="@first @last", year of birth=@year_of_birth',
-        array('@first' => $first2, '@last' => $last2, '@year_of_birth' => $year2)));
-    }
-    drupal_set_message(t('And the favorite color is @color', array('@color' => $form_state['values']['color'])));
-
-    // $form_state['storage'] must be unset for redirection to occur. Otherwise
-    // $form_state['rebuild'] is automatically set and this form will be
-    // rebuilt.
-    unset($form_state['storage']);
-    $form_state['redirect'] = 'node'; // Redirects the user to /node.
-  }
-}
 
 /**
  * Реализация hook_theme()
