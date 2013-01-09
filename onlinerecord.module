@@ -1,6 +1,9 @@
 <?php
 // $Id$ 
-
+function onlinerecord_perm()
+{
+  return array('administer onlinerecord','access onlinerecord');
+}
 
 function onlinerecord_menu()
 {
@@ -14,7 +17,7 @@ function onlinerecord_menu()
       'title' => 'OnlineRecord',
       'page callback' =>  'onlinerecord_form',
       //'page arguments' => array('onlinerecord_form'),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_NORMAL_ITEM,
     );
 
@@ -25,7 +28,7 @@ function onlinerecord_menu()
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_organizations_list'),
       'page callback' =>  'onlinerecord_orgs_list',
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_NORMAL_ITEM,
       'file' => 'onlinerecord.admin.inc'
     );
@@ -35,7 +38,7 @@ function onlinerecord_menu()
       'title' => 'Add organization',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_orgs_form_add'),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
     );
@@ -45,7 +48,7 @@ function onlinerecord_menu()
       'title' => 'Edit organization',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_orgs_form_edit',4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       // 'type' => MENU_NORMAL_ITEM,
       'file' => 'onlinerecord.admin.inc',
@@ -56,7 +59,7 @@ function onlinerecord_menu()
       'title' => 'Delete organization',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_orgs_form_delete_confirm',4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
       
@@ -69,7 +72,7 @@ function onlinerecord_menu()
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_organizations_list'),
       'page callback' =>  'onlinerecord_depts_list',
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_NORMAL_ITEM,
       'file' => 'onlinerecord.admin.inc'
     );
@@ -79,7 +82,7 @@ function onlinerecord_menu()
       'title' => 'Add department',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_depts_form_add'),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
     );
@@ -89,7 +92,7 @@ function onlinerecord_menu()
       'title' => 'Edit department',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_depts_form_edit',4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       // 'type' => MENU_NORMAL_ITEM,
       'file' => 'onlinerecord.admin.inc',
@@ -100,7 +103,7 @@ function onlinerecord_menu()
       'title' => 'Delete department',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_depts_form_delete_confirm',4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
 
@@ -114,7 +117,7 @@ function onlinerecord_menu()
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_organizations_list'),
       'page callback' =>  'onlinerecord_plans_list',
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_NORMAL_ITEM,
       'file' => 'onlinerecord.admin.inc'
     );
@@ -124,7 +127,7 @@ function onlinerecord_menu()
       'title' => 'Add plan',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_form_add'),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
     );
@@ -134,7 +137,7 @@ function onlinerecord_menu()
       'title' => 'Edit plan',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_form_edit',4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       // 'type' => MENU_NORMAL_ITEM,
       'file' => 'onlinerecord.admin.inc',
@@ -145,7 +148,7 @@ function onlinerecord_menu()
       'title' => 'Delete plan',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_form_delete_confirm',4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
 
@@ -160,7 +163,7 @@ function onlinerecord_menu()
       //'page callback' =>  'onlinerecord_plans_list',
       'page callback' =>  'onlinerecord_exceptions_per_plan_list',
       'page arguments' => array(4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc'
     );
@@ -170,7 +173,7 @@ function onlinerecord_menu()
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_exceptions_per_plan_add',4),
       //'page callback' =>  'onlinerecord_exceptions_per_plan_add',
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
       'weight' => -10
@@ -183,7 +186,7 @@ function onlinerecord_menu()
       //'page callback' =>  'onlinerecord_plans_list',
       'page callback' =>  'onlinerecord_exceptions_list',
       'page arguments' => array(4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc'
     );
@@ -193,7 +196,7 @@ function onlinerecord_menu()
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_exceptions_edit',4),
       //'page callback' =>  'onlinerecord_exceptions_per_plan_add',
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
       'weight' => -5
@@ -204,7 +207,7 @@ function onlinerecord_menu()
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_exceptions_form_delete_confirm',4),
       //'page callback' =>  'onlinerecord_exceptions_per_plan_delete',
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
       'weight' => 0
@@ -216,7 +219,7 @@ function onlinerecord_menu()
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_organizations_list'),
       'page callback' =>  'onlinerecord_services_list',
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_NORMAL_ITEM,
       'file' => 'onlinerecord.admin.inc'
     );
@@ -226,7 +229,7 @@ function onlinerecord_menu()
       'title' => 'Add service',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_services_form_add'),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
     );
@@ -236,7 +239,7 @@ function onlinerecord_menu()
       'title' => 'Edit service',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_services_form_edit',4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       // 'type' => MENU_NORMAL_ITEM,
       'file' => 'onlinerecord.admin.inc',
@@ -247,7 +250,7 @@ function onlinerecord_menu()
       'title' => 'Delete service',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_services_form_delete_confirm',4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
 
@@ -260,7 +263,7 @@ function onlinerecord_menu()
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_organizations_list'),
       'page callback' =>  'onlinerecord_plans_services_list',
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_NORMAL_ITEM,
       'file' => 'onlinerecord.admin.inc'
     );
@@ -270,7 +273,7 @@ function onlinerecord_menu()
       'title' => 'Add service',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_services_form_add'),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
     );
@@ -280,7 +283,7 @@ function onlinerecord_menu()
       'title' => 'Delete service',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_services_form_delete_confirm',4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
 
@@ -291,7 +294,7 @@ function onlinerecord_menu()
       'title' => 'View plan',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_form_view',4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       'file' => 'onlinerecord.admin.inc',
     );
@@ -313,7 +316,7 @@ function onlinerecord_menu()
       'title' => 'Edit plan',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_form_clone',4),
-      'access arguments' => array('access content'),
+      'access arguments' => array('administer onlinerecord'),
       'type' => MENU_LOCAL_TASK,
       // 'type' => MENU_NORMAL_ITEM,
       'file' => 'onlinerecord.admin.inc',
@@ -327,23 +330,8 @@ function onlinerecord_menu()
       'page arguments' => array('onlinerecord_choose'),
       'access arguments' => array('access content'),
       'type' => MENU_NORMAL_ITEM,
-      'file' => 'onlinerecord.admin.inc',
+      //'file' => 'onlinerecord.admin.inc',
     );
-    /*
-    $items['onlinerecord/callback1'] = array(
-      'page callback' => 'onlinerecord_choose_callback1',
-      'access callback' => TRUE,
-      'file' => 'onlinerecord.admin.inc',
-      'type' => MENU_CALLBACK,
-    );
-    $items['onlinerecord/callback2'] = array(
-      'page callback' => 'onlinerecord_choose_callback2',
-      'access callback' => TRUE,
-      'file' => 'onlinerecord.admin.inc',
-      'type' => MENU_CALLBACK,
-    );
-     *
-     */
     return $items;
 }
 
@@ -371,59 +359,50 @@ function onlinerecord_choose($form_state)
   if (isset($form_state['storage']['page_three']))
   {
     $form['name'] =  array(
-      '#type' => 'textfield',
       '#title' => t('FIO'),
-      '#default_value' =>'',
+      '#type' => 'textfield',
+      '#default_value' =>' ',
     );
     $form['birthyear'] =  array(
       '#type' => 'textfield',
-      '#title' => t('birth year'),
-      '#default_value' =>'',
+      '#title' => t('Date of birth'),
+      '#default_value' =>' ',
     );
 
     $form['submit'] =  array(
       '#type' => 'submit',
-      '#value' => 'save',
+      '#value' => 'savebutton',
       '#name' => 'savebutton',
     );
-
-   
     // Check second page
   } else {
-
     if (isset($form_state['storage']['page_two'])) {
         $vals=onlinerecord_choose_callback2();
-        $i=0;
         $form=array();
-
+        //Add header for table_theme
         $form['header'] = array(
           '#type' => 'value',
           '#value' => array(
              array('data' => 'Время', 'field' => 'time'),
-             array('data' => 'Заголовок', 'field' => 'time_value'),
-             array('data' => 'Дата создания', 'field' => 'kvant_number', 'sort' => 'asc'),
-             array('data' => 'button', 'field' => 'button'),
+             //array('data' => 'Заголовок', 'field' => 'time_value'),
+             //array('data' => 'Дата создания', 'field' => 'kvant_number', 'sort' => 'asc'),
+             array('data' => 'Make an appointment', 'field' => 'button'),
           ),
         );
-        //$form['plan_id']=array();
-        //
-        //$form['plan_header']=array();
-        $plans=array();
+
         $form['plan_id']['#tree']=TRUE;
         $form['plan_header']['#tree']=TRUE;
         $form['time_val']['#tree']=TRUE;
         foreach ($vals as $val)
         {
-          
           $form['plan_id'][$val[4]] = array('#type' => 'value','#value' =>$val[0][0]);
           $form['plan_header'][$val[4]] = array('#type' => 'value','#value' =>$val[1][0]);
           $form['time_val'][$val[4]] = array('#type' => 'value','#value' => $val[3]);
-          
 
           $form['time'][$val[4]] = array('#value' =>$val[2]);
           $form['time_value'][$val[4]] = array('#value' => $val[3]);
           $form['kvant_number'][$val[4]] = array('#value' => $val[4]);
-          if (!empty($val[0]))
+          if (!empty($val[0])&&(1==1))
           {
             $form['button'][$val[4]] =  array(
                 '#type' => 'submit',
@@ -435,7 +414,6 @@ function onlinerecord_choose($form_state)
           }
           $i++;
         }
-        //$form['plan_id']=array('#type' => 'value','#value' =>$plans());
     } else // this is first page
     {
         $result=db_query('SELECT service_id, name, cabinet FROM {onlinerecord_services}');
@@ -454,7 +432,6 @@ function onlinerecord_choose($form_state)
           '#type' => 'select',
           '#options' => $services,
           '#default_value' => $default_choose_service_id,
-
         );
         $dateformat='Y-m-d';
         $datef=date($dateformat);
@@ -487,12 +464,9 @@ function onlinerecord_choose($form_state)
 function onlinerecord_choose_submit($form, &$form_state)
 {
   $num=explode('-',$form_state['clicked_button']['#id']);
-  dpm($form_state['clicked_button']['#id']);
   // Second submit
-  //if ($form_state['clicked_button']['#id'] == 'edit-'.(int)($num[1]).'-'.$num[2])
   if ($form_state['clicked_button']['#id'] == 'edit-'.(int)($num[1]))
   {
-    dpm("3");
     $form_state['storage']['page_three'] = TRUE;
     $page_one_values = $form_state['storage']['page_one_values'];
     $form_state['storage']['page_two_values'] = $form_state['values'];
@@ -504,24 +478,15 @@ function onlinerecord_choose_submit($form, &$form_state)
 
   } // First submit server
   elseif($form_state['clicked_button']['#id'] == 'edit-next') {
-    $form_state['storage']['page_two'] = TRUE; // We set this to determine
-                                               // which elements to display
-                                               // when the page reloads.
-
-    // Values below in the $form_state['storage'] array are saved
-    // to carry forward to subsequent pages in the form.
+    $form_state['storage']['page_two'] = TRUE; 
     $form_state['storage']['page_one_values'] = $form_state['values'];
-
     unset($form_state['clicked_button']);
-
   }
   // Handle page 2 submissions.
   else
   {
     $page_one_values = $form_state['storage']['page_one_values'];
     $page_two_values = $form_state['storage']['page_two_values'];
-    dpm ($page_one_values);
-    dpm ($page_two_values);
 
     $choose_service_id=intval($page_one_values['choose_service_id']);
     $choose_date=$page_one_values['choose_date'];
@@ -529,23 +494,19 @@ function onlinerecord_choose_submit($form, &$form_state)
     $plan_id=intval($form_state['storage']['plan_id']);
     $plan_header=$form_state['storage']['plan_header'];
     $kvant_number=intval($form_state['storage']['time_val']);
-    dpm($form_state['storage']['time_val']);
-
+    dpm($form_state['values']);
     $name=$form_state['values']['name'];
     $birthyear=$form_state['values']['birthyear'];
-
-
 
     $result=db_query("INSERT INTO {onlinerecord_records} 
       (recorddate,services_id,plan_id,kvant,name,birthyear)
       VALUES (%d,%d,%d,%d,'%s','%s')",
-      strtotime($choose_date),$choose_service_id,$plan_id,$kvant_number,name,birthyear);
+      strtotime($choose_date),$choose_service_id,$plan_id,$kvant_number,$name,$birthyear);
   }
 }
 
 function onlinerecord_choose_callback2()
 {
-  //$arg=check_plain(arg(4));
   $choosed_date='---';
   if (isset($_POST['choose_date']))
     $choosed_date=check_plain($_POST['choose_date']['year']).'-'.$_POST['choose_date']['month'].'-'.$_POST['choose_date']['day'];
@@ -573,8 +534,6 @@ function onlinerecord_choose_callback2()
 
   while ($pid = db_fetch_object($result))
     {
-      //$pids[$i++]=$pid['plan_id'];
-      
         $arg=$pid->plan_id;
         $header_table=$pid->planname." at ".$pid->deptname.", ".$pid->orgname;
         $wts=$pid->worktimestart;
@@ -582,7 +541,6 @@ function onlinerecord_choose_callback2()
         $kvant_value=$pid->kvant_value;
         $edate=$pid->enabled_date;
         $ddate=$pid->disbled_date;
-
         {
         // Get all exceptions from choosen plan
           $result2=db_query("SELECT e.except_id, e.type, e.time_start, e.time_stop, e.daynumber, e.dateofexcept
@@ -609,13 +567,8 @@ function onlinerecord_choose_callback2()
           
           while ($record = db_fetch_object($result3))
           {
-
-            //$records[intval($record->plan_id)][intval($record->kvant)]=true;
               $records[intval($record->kvant)]=true;
           }
-          //dpm('time='.$ch_t.', arg='.$arg.',records');
-          //dpm($records);
-          //preparing count of kvants
           $n=($wtf-$wts)/($kvant_value*60);
 
           for ($k=0;$k<$n;$k++)
@@ -628,8 +581,6 @@ function onlinerecord_choose_callback2()
             for ($j=0;$j<$exceptscount;$j++)
             {
               //get excepts date
-
-
               $tstart=intval($excepts[$j]->time_start);
               $tstop=intval($excepts[$j]->time_stop);
               $dn=intval($excepts[$j]->daynumber);
@@ -663,11 +614,8 @@ function onlinerecord_choose_callback2()
                   }
                   break;
               }
-              //if ($flag!=true) break;
             }
-
             //InputData
-
             $tableData[] = array(
               $arg,//plan_id
               $header_table,//dept org
@@ -682,15 +630,13 @@ function onlinerecord_choose_callback2()
               $temp,//time in seconds
               $excepts_ids,
               $excepts_types,
-              //$choosed_date,
-              //strtotime($choosed_date),
-              (($flag)&&(!$records[$k])) ? 1 :0,//time in seconds
+              (($flag)&&(!$records[$temp])) ? 1 :0,//time in seconds
             );
           }
         }
     }
     
-    usort($tableData,'func_timecompare');
+    usort($tableData,'onlinerecord_func_timecompare');
     $display_array=array();
     $flag=true;
     $counter=0;
@@ -700,7 +646,6 @@ function onlinerecord_choose_callback2()
     foreach ($tableData as $arr_str)
     {
         $i++;
-        //$temp_time;
         if ($arr_str[9]!=$temp_time) {
             $flag=false;
             
@@ -717,23 +662,9 @@ function onlinerecord_choose_callback2()
                     $display_array[]=array(
                       $plans_ids_array,//plan_id
                       $header_tables_array,//dept org
-                      //$wts,//work_time_start
-                      //$wtf,//work_time_finish
-                      //$kvant_value,
-                      //$edate,//enabled date
-                      //$ddate,//disabled date
-
-                      //$k,// Kvant number
                       strval((int)($temp_time/3600)).":".str_pad(strval((int)(($temp_time%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
-                      //$time_values_array,
                       $temp_time,//time in seconds
                       $arr_str[7],//@TODO BUG: different quants possible
-                      //$excepts_ids_arrays,
-                      //$excepts_types_arrays,
-                      //$choosed_date,
-                      //strtotime($choosed_date),
-                      //($flag) ? 1 :0,//time in seconds
-
                       );
                 }
             $flag=true;
@@ -758,17 +689,10 @@ function onlinerecord_choose_callback2()
               $arr_str[7]+1,//@TODO BUG: different quants possible
 
               );
-    //($tableData,'func_timecompare');
-    //array_multisort($tableData[9],SORT_ASC);
-
     return $display_array;
-  //drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $display_array)));
-  //drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $tableData)));
-  //$pids_str=implode(',',$pids['plan_id']);
-
 }
 
-function func_timecompare($val1,$val2)
+function onlinerecord_func_timecompare($val1,$val2)
 {
   if ($val1[9]==$val2[9]) return 0;
   else return ($val1[9]<$val2[9]) ? -1 :1;

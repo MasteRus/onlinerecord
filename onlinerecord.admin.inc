@@ -42,13 +42,10 @@ function onlinerecord_orgs_form_edit(&$form_state)
       '#default_value' => $org['name'],
     );
 
-
     $form['org_id']=array(
       '#type' => 'value',
       '#value' => $arg,
     );
-
-
 
     $form['submit'] = array(
         '#type' => 'submit',
@@ -68,9 +65,7 @@ function onlinerecord_orgs_form_delete_confirm(&$form_state)
 {
     $message=t('Are you sure want to delete organization?');
     $arg=check_plain(arg(4));
-
     $result=db_query("Select name FROM {onlinerecord_organizations} WHERE org_id=%d",$arg);
-
     $org = db_fetch_object($result);
 
     $form['org_id']=array(
@@ -109,8 +104,6 @@ function onlinerecord_orgs_list()
     $result=db_query('Select org_id, name FROM {onlinerecord_organizations}');
 
     $tableHeader = array('org_id', 'name', 'Actions');
-
-    //$tableHeader = array('org_id', 'name');
     $tableData = array();
 
     while ($org = db_fetch_object($result))
@@ -126,7 +119,6 @@ function onlinerecord_orgs_list()
     }
 
     return theme('table', $tableHeader, $tableData);
-    //return $form;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
