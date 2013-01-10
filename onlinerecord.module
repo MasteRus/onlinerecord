@@ -361,17 +361,17 @@ function onlinerecord_choose($form_state)
     $form['name'] =  array(
       '#title' => t('FIO'),
       '#type' => 'textfield',
-      '#default_value' =>' ',
+      '#default_value' =>'',
     );
     $form['birthyear'] =  array(
       '#type' => 'textfield',
       '#title' => t('Date of birth'),
-      '#default_value' =>' ',
+      '#default_value' =>'',
     );
 
     $form['submit'] =  array(
       '#type' => 'submit',
-      '#value' => 'savebutton',
+      '#value' => 'save',
       '#name' => 'savebutton',
     );
     // Check second page
@@ -433,7 +433,7 @@ function onlinerecord_choose($form_state)
           '#default_value' => $default_choose_service_id,
         );
         $dateformat='Y-m-d';
-        $datef=date($dateformat);
+        $datef=date($dateformat, (time()+86400));
 
         $form['choose_date'] = array(
           '#title' => t('Enabled on'),
@@ -458,7 +458,41 @@ function onlinerecord_choose($form_state)
 
 }
 
+function onlinerecord_choose_validate($form, &$form_state) {
+     // Validate page 2 here
+  if (isset($form_state['storage']['page_three'])) {
+   
+    $recordname= $form_state['values']['name'];
+    if (!$recordname) {
+        form_set_error('name', t('Please enter your FIO.'));
+    }
 
+    $birthyear= $form_state['values']['birthyear'];
+    if (!$birthyear) {
+        form_set_error('birthyear', t('Please enter your birthday date.'));
+    }
+  } else {
+      if (isset($form_state['storage']['page_two'])) {
+
+      } else {
+        $choose_service_id=$form_state['values']['choose_service_id'];
+        if (!$choose_service_id)
+            form_set_error('choose_service_id', t('Please choose service.'));
+
+        $choose_date=$form_state['values']['choose_date'];
+        $dateformat='Y-m-d';
+        $datef=date($dateformat, (time()+86400));
+        if (strtotime($choose_date)<strtotime($datef))
+        {
+            form_set_error('choose_date', t('Please select date correctly. You can choose only '.$datef. ' or later'));
+        }
+
+
+      }
+
+  }
+
+}
 
 function onlinerecord_choose_submit($form, &$form_state)
 {
