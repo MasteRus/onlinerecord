@@ -551,7 +551,6 @@ function onlinerecord_plans_form_delete_confirm_submit($form, &$form_state)
     if ($form_state['values']['confirm']) {
       $plan_id=$form_state['values']['plan_id'];
       $name=$form_state['values']['name'];
-      //dpm($plan_id);
       db_query("DELETE FROM {onlinerecord_plans} WHERE plan_id=%d",$plan_id);
       drupal_set_message('The department <i>'.$name.'</i> was deleted','status');
       $form_state['redirect']='admin/settings/onlinerecord/plans/';
@@ -800,7 +799,7 @@ function onlinerecord_plans_form_view()
   $datef=date($dateformat);
 
   $default_choose_date = !empty($form_state['values']['choose_date']) ? $form_state['values']['choose_date'] : $datef;
-  dpm($default_choose_date);
+  //dpm($default_choose_date);
 
   $form['choose_date'] = array(
       '#title' => t('Enabled on'),
@@ -815,7 +814,7 @@ function onlinerecord_plans_form_view()
 
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Click Me'),
+    '#value' => t('Load'),
     '#ahah' => array(
         'path' => 'admin/settings/onlinerecord/plans/'.$arg.'/view/callback1',
         'wrapper' => 'dependent_dropdown_holder',
@@ -823,15 +822,6 @@ function onlinerecord_plans_form_view()
       ),
   );
 
-  $form['submit2'] = array(
-    '#type' => 'submit',
-    '#value' => t('Sumbit2'),
-    '#ahah' => array(
-        'path' => 'admin/settings/onlinerecord/plans/'.$arg.'/view/callback2',
-        'wrapper' => 'dependent_dropdown_holder2',
-        //'event' => 'change', // default value: does not need to be set explicitly.
-      ),
-  );
 
   $form['dependent_dropdown_holder2'] = array(
     '#value' => '<div id="dependent_dropdown_holder2"></div>'
@@ -848,9 +838,6 @@ function onlinerecord_plans_form_view_callback2()
 {
   if (isset($_POST['choose_date']))
     $choosed_date=check_plain($_POST['choose_date']['year']).'-'.$_POST['choose_date']['month'].'-'.$_POST['choose_date']['day'];
-  //$tmpd=$_POST['choose_date'];
-  //dpm("Choosed _date=".$choosed_date);
-  //dpm($_POST);
   if ($choosed_date!="")
     $chd=date('N',strtotime($choosed_date));
    drupal_json(array('status' => TRUE, 'data' => $choosed_date."=".strtotime($choosed_date)));
@@ -862,9 +849,6 @@ function onlinerecord_plans_form_view_callback1()
   $choosed_date='---';
   if (isset($_POST['choose_date']))
     $choosed_date=check_plain($_POST['choose_date']['year']).'-'.$_POST['choose_date']['month'].'-'.$_POST['choose_date']['day'];
-  //$tmpd=$_POST['choose_date'];
-  //dpm("Choosed _date=".$choosed_date);
-  //dpm($_POST);
   if ($choosed_date!="")
     $chd=date('N',strtotime($choosed_date));
 
@@ -885,7 +869,6 @@ function onlinerecord_plans_form_view_callback1()
 
   $edate=$plan->enabled_date;
   $ddate=$plan->disbled_date;
-  //check if beetween enabled and disabled date
   //if (($edate<=strtotime($choosed_date))&&(strtotime($choosed_date)<=$ddate))
   {
     // Get all exceptions from choosen plan
@@ -893,7 +876,6 @@ function onlinerecord_plans_form_view_callback1()
       FROM {onlinerecord_exceptions} e
       WHERE e.plan_id=%d',$arg);
     $i=0;
-    //dpm($i);
     $excepts=array();
     //exceptions to array
     while ($except = db_fetch_object($result))
@@ -901,9 +883,27 @@ function onlinerecord_plans_form_view_callback1()
       $excepts[$i++]=$except;
     }
     $exceptscount=$i;
-    //dpm($excepts);
+
+    $result3=db_query("SELECT r.plan_id, r.kvant, r.name as recordname, r.birthyear, s.name as servicename
+      FROM {onlinerecord_records} r, {onlinerecord_services} s
+      WHERE r.plan_id =%d
+      AND r.recorddate=%d
+      AND r.services_id=s.service_id
+      ORDER BY r.plan_id",$arg,strtotime($choosed_date));
+
+    $services=array();
+    $records_by_date=array();
+    $records_by_date2=array();
+    
+    while ($record= db_fetch_object($result3))
+    {
+      $records_by_date[$record->kvant]=true;
+      $records_by_date2[$record->kvant]=$record->recordname.", ".$record->birthyear;
+      $services[$record->kvant]=$record->servicename;
+    }
+    
     //preparing table header
-    $tableHeader = array('kvant_number', 'time','except_id', 'type','actions');
+    $tableHeader = array('#', t('Time'),t('Record'),t('Service'),'except_id', t('type'));
     $tableData = array();
     //preparing count of kvants
     $n=($wtf-$wts)/($kvant_value*60);
@@ -918,15 +918,10 @@ function onlinerecord_plans_form_view_callback1()
       for ($j=0;$j<$exceptscount;$j++)
       {
         //get excepts date
-        //dpm($excepts[$j]->except_id);
-        
         $tstart=intval($excepts[$j]->time_start);
         $tstop=intval($excepts[$j]->time_stop);
         $dn=intval($excepts[$j]->daynumber);
         $dateofe=intval($excepts[$j]->dateofexcept);
-        //dpm("j=".$j.", dateofe".$dateofe);
-
-        //dpm(strtotime($choosed_date));
 
         //type of exceptions processing
         switch (intval($excepts[$j]->type)) {
@@ -959,46 +954,25 @@ function onlinerecord_plans_form_view_callback1()
         //if ($flag!=true) break;
       }
       
+      
+      if (!$flag) $place=t("-");
+      else
+      {
+        if (!$records_by_date[$temp]) $place=t("Free");
+        else $place=$records_by_date2[$temp];
+      }
       //InputData
-
       $tableData[] = array(
         $i,// Kvant number
         strval((int)($temp/3600)).":".str_pad(strval((int)(($temp%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
+        $place,
+        $services[$temp],
         $excepts_ids,
         $excepts_types,
-        //$choosed_date,
-        //strtotime($choosed_date),
-        ($flag) ? "OK" :"ZANAYTO",
       );
     }
     drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $tableData)));
-    //drupal_json(array('status' => TRUE, 'data' => 'str='.$choosed_date));
-    
-  //} else {
-    //drupal_set_message('There is no avalibles dates','status');
-
   }
-
-/*
-    while ($excepts = db_fetch_object($result))
-    {
-        $actions  = l('изменить', 'admin/settings/onlinerecord/exceptions/'.$excepts->except_id .'/edit/', array('alias' => true)) . ' | ';
-        $actions .= l('удалить', 'admin/settings/onlinerecord/exceptions/'.$excepts->except_id.'/delete/', array('alias' => true));
-
-        $tableData[] = array(
-            $excepts->pname,
-            $excepts->dname." ".$excepts->oname,
-            $excepts->type,//@TODO Readeable typename
-            $excepts->kvant_start,
-            $excepts->kvant_stop,
-            $excepts->daynumber,
-            $excepts->dateofexcept,
-            $actions,
-        );
-    }
-  //drupal_json(array('status' => TRUE, 'data' => $header_table));
-  //drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $tableData)));
-*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1534,6 +1508,11 @@ function onlinerecord_services_form_add(&$form_state)
       '#type' => 'textfield',
       '#default_value' => '',
     );
+   $form['redirect']= array(
+      '#title' => t('Insert redirect URL'),
+      '#type' => 'textfield',
+      '#default_value' => '',
+    );
 
    $form['submit'] = array(
         '#type' => 'submit',
@@ -1548,13 +1527,14 @@ function onlinerecord_services_form_add_submit($form, &$form_state)
     //$str=check_plain($form_state['values']['neworganization']);
     $name=$form_state['values']['name'];
     $cabinet=$form_state['values']['cabinet'];
-    $result=db_query("INSERT INTO {onlinerecord_services} (name,cabinet) VALUES ('%s','%s')",$name,$cabinet);
+    $redirect=$form_state['values']['redirect'];
+    $result=db_query("INSERT INTO {onlinerecord_services} (name,cabinet,redirect) VALUES ('%s','%s','%s')",$name,$cabinet,$redirect);
 }
 
 function onlinerecord_services_form_edit(&$form_state)
 {
   $arg=check_plain(arg(4));
-  $result=db_query ('Select name,cabinet FROM {onlinerecord_services} where service_id=%d',$arg );
+  $result=db_query ('Select name,cabinet,redirect FROM {onlinerecord_services} where service_id=%d',$arg );
   $service=db_fetch_array($result) ;
   
   //$org=$dept['ord_id'];
@@ -1572,6 +1552,11 @@ function onlinerecord_services_form_edit(&$form_state)
       '#title' => t('Insert Service name'),
       '#type' => 'textfield',
       '#default_value' => $service['cabinet'],
+    );
+    $form['redirect']= array(
+      '#title' => t('Insert redirect URL'),
+      '#type' => 'textfield',
+      '#default_value' => $service['redirect'],
     );
     // id-value
     $form['service_id']=array(
@@ -1595,8 +1580,9 @@ function onlinerecord_services_form_edit_submit($form, &$form_state)
 
     $name=$form_state['values']['name'];
     $cabinet=$form_state['values']['cabinet'];
+    $redirect=$form_state['values']['redirect'];
     
-    $result=db_query("UPDATE {onlinerecord_services} set name='%s', cabinet='%s' where service_id=%d",$name,$cabinet,$service_id);
+    $result=db_query("UPDATE {onlinerecord_services} set name='%s', cabinet='%s', redirect='%s' where service_id=%d",$name,$cabinet,$redirect,$service_id);
 }
 
 
@@ -1645,8 +1631,8 @@ function onlinerecord_services_form_delete_confirm_submit($form, &$form_state)
 
 function onlinerecord_services_list()
 {
-    $result=db_query('SELECT service_id, name , cabinet  FROM {onlinerecord_services}');
-    $tableHeader = array('Service_id', 'name','cabinet' ,'Actions');
+    $result=db_query('SELECT service_id, name , cabinet, redirect  FROM {onlinerecord_services}');
+    $tableHeader = array('Service_id', 'name','cabinet' ,'URL','Actions');
     $tableData = array();
 
     while ($org = db_fetch_object($result))
@@ -1658,6 +1644,7 @@ function onlinerecord_services_list()
             $org->service_id,
             $org->name,
             $org->cabinet,
+            l($org->redirect,$org->redirect),
             $actions,
         );
     }

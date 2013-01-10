@@ -205,7 +205,11 @@ function onlinerecord_schema() {
         'length' => 255,
         'not null' => TRUE,
         'default' => ''),
-      
+      'redirect' => array(
+        'description' => 'Page where we redirected',
+        'type' => 'varchar',
+        'length' => 1024,
+        'default' => ''),
       ),
     'primary key' => array('service_id'),
     );

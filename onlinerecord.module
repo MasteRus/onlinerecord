@@ -383,9 +383,8 @@ function onlinerecord_choose($form_state)
         $form['header'] = array(
           '#type' => 'value',
           '#value' => array(
+             array('data' => '#', 'field' => 'kvant_number'),
              array('data' => 'Время', 'field' => 'time'),
-             //array('data' => 'Заголовок', 'field' => 'time_value'),
-             //array('data' => 'Дата создания', 'field' => 'kvant_number', 'sort' => 'asc'),
              array('data' => 'Make an appointment', 'field' => 'button'),
           ),
         );
@@ -400,7 +399,7 @@ function onlinerecord_choose($form_state)
           $form['time_val'][$val[4]] = array('#type' => 'value','#value' => $val[3]);
 
           $form['time'][$val[4]] = array('#value' =>$val[2]);
-          $form['time_value'][$val[4]] = array('#value' => $val[3]);
+          //$form['time_value'][$val[4]] = array('#value' => $val[3]);
           $form['kvant_number'][$val[4]] = array('#value' => $val[4]);
           if (!empty($val[0])&&(1==1))
           {
@@ -487,14 +486,18 @@ function onlinerecord_choose_submit($form, &$form_state)
   {
     $page_one_values = $form_state['storage']['page_one_values'];
     $page_two_values = $form_state['storage']['page_two_values'];
+    
+
 
     $choose_service_id=intval($page_one_values['choose_service_id']);
     $choose_date=$page_one_values['choose_date'];
 
+    $result=db_query('Select redirect FROM {onlinerecord_services} where service_id=%d',$choose_service_id );
+      $redirect = db_fetch_object($result);
+
     $plan_id=intval($form_state['storage']['plan_id']);
     $plan_header=$form_state['storage']['plan_header'];
     $kvant_number=intval($form_state['storage']['time_val']);
-    dpm($form_state['values']);
     $name=$form_state['values']['name'];
     $birthyear=$form_state['values']['birthyear'];
 
@@ -502,6 +505,15 @@ function onlinerecord_choose_submit($form, &$form_state)
       (recorddate,services_id,plan_id,kvant,name,birthyear)
       VALUES (%d,%d,%d,%d,'%s','%s')",
       strtotime($choose_date),$choose_service_id,$plan_id,$kvant_number,$name,$birthyear);
+    drupal_set_message(
+      t('You\'ve been saved on time @time on @planh',
+        array(
+          '@time'=>strval((int)($kvant_number/3600)).":".str_pad(strval((int)(($kvant_number%3600)/60)),2,'0',STR_PAD_LEFT),//time in format hh:mm,
+          '@planh'=>$plan_header))
+    );
+    //$form_state['redirect'] = 'node';
+    unset($form_state['storage']);
+    $form_state['redirect']=$redirect->redirect;
   }
 }
 
@@ -717,9 +729,10 @@ function theme_onlinerecord_choose($form) {
   $rows = array();
   foreach (element_children($form['kvant_number']) as $key) {
     $rows[] = array(
-      drupal_render($form['time'][$key]),
-      drupal_render($form['time_value'][$key]),   // заголовок
       drupal_render($form['kvant_number'][$key]), // дата создания
+      drupal_render($form['time'][$key]),
+      //drupal_render($form['time_value'][$key]),   // заголовок
+      
       drupal_render($form['button'][$key])
     );
   }
