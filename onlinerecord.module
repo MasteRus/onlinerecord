@@ -363,11 +363,14 @@ function onlinerecord_choose($form_state)
       '#type' => 'textfield',
       '#default_value' =>'',
     );
+    /*
     $form['birthyear'] =  array(
       '#type' => 'textfield',
       '#title' => t('Date of birth'),
       '#default_value' =>'',
     );
+     * 
+     */
 
     $form['submit'] =  array(
       '#type' => 'submit',
@@ -466,11 +469,12 @@ function onlinerecord_choose_validate($form, &$form_state) {
     if (!$recordname) {
         form_set_error('name', t('Please enter your FIO.'));
     }
-
+    /*
     $birthyear= $form_state['values']['birthyear'];
     if (!$birthyear) {
         form_set_error('birthyear', t('Please enter your birthday date.'));
     }
+     */
   } else {
       if (isset($form_state['storage']['page_two'])) {
 
@@ -533,12 +537,17 @@ function onlinerecord_choose_submit($form, &$form_state)
     $plan_header=$form_state['storage']['plan_header'];
     $kvant_number=intval($form_state['storage']['time_val']);
     $name=$form_state['values']['name'];
-    $birthyear=$form_state['values']['birthyear'];
+    /*$birthyear=$form_state['values']['birthyear'];
 
     $result=db_query("INSERT INTO {onlinerecord_records} 
       (recorddate,services_id,plan_id,kvant,name,birthyear)
       VALUES (%d,%d,%d,%d,'%s','%s')",
       strtotime($choose_date),$choose_service_id,$plan_id,$kvant_number,$name,$birthyear);
+     */
+    $result=db_query("INSERT INTO {onlinerecord_records}
+      (recorddate,services_id,plan_id,kvant,name)
+      VALUES (%d,%d,%d,%d,'%s')",
+      strtotime($choose_date),$choose_service_id,$plan_id,$kvant_number,$name);
     drupal_set_message(
       t('You\'ve been saved on time @time on @planh',
         array(
