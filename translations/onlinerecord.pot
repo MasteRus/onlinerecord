@@ -1,0 +1,330 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  onlinerecord.admin.inc: n/a
+#  onlinerecord.module: n/a
+#  onlinerecord.info: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2013-01-14 15:10+0600\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: onlinerecord.admin.inc:12;40;188
+msgid "Insert Organization name"
+msgstr ""
+
+#: onlinerecord.admin.inc:19;152;209;362;686;1080;1519;1569;1698
+msgid "Add"
+msgstr ""
+
+#: onlinerecord.admin.inc:52;1274 onlinerecord.module:378
+msgid "Save"
+msgstr ""
+
+#: onlinerecord.admin.inc:66
+msgid "Are you sure want to delete organization?"
+msgstr ""
+
+#: onlinerecord.admin.inc:138
+msgid "Insert Department name"
+msgstr ""
+
+#: onlinerecord.admin.inc:144;201;308;322;424;439;632;646
+msgid "Select your place"
+msgstr ""
+
+#: onlinerecord.admin.inc:229;1591
+msgid "Are you sure want to delete department?"
+msgstr ""
+
+#: onlinerecord.admin.inc:315;431;639
+msgid "Insert Plan name"
+msgstr ""
+
+#: onlinerecord.admin.inc:329;446;653
+msgid "Start time"
+msgstr ""
+
+#: onlinerecord.admin.inc:335;452;659
+msgid "Finish time"
+msgstr ""
+
+#: onlinerecord.admin.inc:341;461;665;805
+msgid "Enabled on"
+msgstr ""
+
+#: onlinerecord.admin.inc:351;471;675
+msgid "Disabled on"
+msgstr ""
+
+#: onlinerecord.admin.inc:374;495;698
+msgid "Disabled date should be after Enabled date"
+msgstr ""
+
+#: onlinerecord.admin.inc:482
+msgid "Edit"
+msgstr ""
+
+#: onlinerecord.admin.inc:523
+msgid "Are you sure want to delete plan?"
+msgstr ""
+
+#: onlinerecord.admin.inc:817
+msgid "Load"
+msgstr ""
+
+#: onlinerecord.admin.inc:906
+msgid "Time"
+msgstr ""
+
+#: onlinerecord.admin.inc:906
+msgid "Record"
+msgstr ""
+
+#: onlinerecord.admin.inc:906
+msgid "Service"
+msgstr ""
+
+#: onlinerecord.admin.inc:906
+msgid "type"
+msgstr ""
+
+#: onlinerecord.admin.inc:958
+msgid "-"
+msgstr ""
+
+#: onlinerecord.admin.inc:961
+msgid "Free"
+msgstr ""
+
+#: onlinerecord.admin.inc:1022;1211;1690
+msgid "Type of exception"
+msgstr ""
+
+#: onlinerecord.admin.inc:1041;1234
+msgid "Start quant"
+msgstr ""
+
+#: onlinerecord.admin.inc:1048;1241
+msgid "Finish quant"
+msgstr ""
+
+#: onlinerecord.admin.inc:1056;1249
+msgid "Daynumber"
+msgstr ""
+
+#: onlinerecord.admin.inc:1069;1263
+msgid "Date of Exception"
+msgstr ""
+
+#: onlinerecord.admin.inc:1100;1294
+msgid "kvant_start > kvant_finish"
+msgstr ""
+
+#: onlinerecord.admin.inc:1104
+msgid "Daynumber must be setted correctly"
+msgstr ""
+
+#: onlinerecord.admin.inc:1109
+msgid "Date must be setted correctly"
+msgstr ""
+
+#: onlinerecord.admin.inc:1298
+msgid "Daynumber must be setted correctly/"
+msgstr ""
+
+#: onlinerecord.admin.inc:1303
+msgid "Date Of Exception must be setted correctly/"
+msgstr ""
+
+#: onlinerecord.admin.inc:1376
+msgid "Are you sure want to delete exception?"
+msgstr ""
+
+#: onlinerecord.admin.inc:1501
+msgid "Insert service name"
+msgstr ""
+
+#: onlinerecord.admin.inc:1507
+msgid "Insert cabinet"
+msgstr ""
+
+#: onlinerecord.admin.inc:1512;1557
+msgid "Insert redirect URL"
+msgstr ""
+
+#: onlinerecord.admin.inc:1547;1552
+msgid "Insert Service name"
+msgstr ""
+
+#: onlinerecord.admin.inc:1683
+msgid "Plans"
+msgstr ""
+
+#: onlinerecord.admin.inc:1714
+msgid "Are you sure want to delete plan-service connection?"
+msgstr ""
+
+#: onlinerecord.module:363
+msgid "FIO"
+msgstr ""
+
+#: onlinerecord.module:394
+msgid "time"
+msgstr ""
+
+#: onlinerecord.module:395
+msgid "Make an appointment"
+msgstr ""
+
+#: onlinerecord.module:444
+msgid "Select service"
+msgstr ""
+
+#: onlinerecord.module:453
+msgid "Choose date"
+msgstr ""
+
+#: onlinerecord.module:465
+msgid "Next >>"
+msgstr ""
+
+#: onlinerecord.module:482
+msgid "Please enter your FIO."
+msgstr ""
+
+#: onlinerecord.module:496
+msgid "Please choose service."
+msgstr ""
+
+#: onlinerecord.module:503
+msgid "Please select date correctly. You can choose only !datef or later"
+msgstr ""
+
+#: onlinerecord.module:565
+msgid "You've been saved on time @time. @planh, your number is @num"
+msgstr ""
+
+#: onlinerecord.module:611
+msgid "@deptname , @orgname"
+msgstr ""
+
+#: onlinerecord.module:5
+msgid "administer onlinerecord"
+msgstr ""
+
+#: onlinerecord.module:5
+msgid "access onlinerecord"
+msgstr ""
+
+#: onlinerecord.module:17
+msgid "OnlineRecord"
+msgstr ""
+
+#: onlinerecord.module:27
+msgid "OnlineRecord organizations"
+msgstr ""
+
+#: onlinerecord.module:38
+msgid "Add organization"
+msgstr ""
+
+#: onlinerecord.module:48
+msgid "Edit organization"
+msgstr ""
+
+#: onlinerecord.module:59
+msgid "Delete organization"
+msgstr ""
+
+#: onlinerecord.module:71
+msgid "OnlineRecord departments"
+msgstr ""
+
+#: onlinerecord.module:82
+msgid "Add department"
+msgstr ""
+
+#: onlinerecord.module:92
+msgid "Edit department"
+msgstr ""
+
+#: onlinerecord.module:103
+msgid "Delete department"
+msgstr ""
+
+#: onlinerecord.module:116
+msgid "OnlineRecord Plans"
+msgstr ""
+
+#: onlinerecord.module:127
+msgid "Add plan"
+msgstr ""
+
+#: onlinerecord.module:137;316
+msgid "Edit plan"
+msgstr ""
+
+#: onlinerecord.module:148
+msgid "Delete plan"
+msgstr ""
+
+#: onlinerecord.module:160;183
+msgid "Exceptions1"
+msgstr ""
+
+#: onlinerecord.module:172
+msgid "Add exception"
+msgstr ""
+
+#: onlinerecord.module:195
+msgid "Edit exception"
+msgstr ""
+
+#: onlinerecord.module:206
+msgid "Delete exception"
+msgstr ""
+
+#: onlinerecord.module:218;262
+msgid "OnlineRecord services"
+msgstr ""
+
+#: onlinerecord.module:229;273
+msgid "Add service"
+msgstr ""
+
+#: onlinerecord.module:239
+msgid "Edit service"
+msgstr ""
+
+#: onlinerecord.module:250;283
+msgid "Delete service"
+msgstr ""
+
+#: onlinerecord.module:294
+msgid "View plan"
+msgstr ""
+
+#: onlinerecord.module:328
+msgid "Onlinerecord"
+msgstr ""
+
+#: onlinerecord.info:0
+msgid "onlinerecord"
+msgstr ""
+
+#: onlinerecord.info:0
+msgid "To record priem"
+msgstr ""
+

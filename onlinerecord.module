@@ -392,7 +392,7 @@ function onlinerecord_choose($form_state)
              //array('data' => 'Время', 'field' => 'time'),
              //array('data' => t('Make an appointment'), 'field' => 'button'),
              array('data' => t('time')),
-             array('data' => t('Make an appointment')),
+             array('data' => t('-')),
           ),
         );
 
@@ -416,7 +416,7 @@ function onlinerecord_choose($form_state)
               {
                 $form['button'][$val[4]] =  array(
                     '#type' => 'submit',
-                    '#value' => 'Save',
+                    '#value' => t('Make an appointment'),
                     '#name' => 'button_'.$val[4],
                     '#id' => 'save_step2',
 
@@ -500,7 +500,7 @@ function onlinerecord_choose_validate($form, &$form_state) {
         $datef=date($dateformat, (time()+86400));
         if (strtotime($choose_date)<strtotime($datef))
         {
-            form_set_error('choose_date', t('Please select date correctly. You can choose only '.$datef. ' or later'));
+            form_set_error('choose_date', t('Please select date correctly. You can choose only !datef or later',array('!datef' => $datef)));
         }
       }
   }
