@@ -14,7 +14,7 @@ function onlinerecord_menu()
 
     //Add main onlinerrecord settings pages
     $items['admin/settings/onlinerecord'] = array(
-      'title' => 'OnlineRecord',
+      'title' => t('OnlineRecord'),
       'page callback' =>  'onlinerecord_form',
       //'page arguments' => array('onlinerecord_form'),
       'access arguments' => array('administer onlinerecord'),
@@ -24,7 +24,7 @@ function onlinerecord_menu()
     /////////////////////////// Organizations //////////////////////////////////
     //Add orgs main page
     $items['admin/settings/onlinerecord/orgs'] = array(
-      'title' => 'OnlineRecord organizations',
+      'title' => t('OnlineRecord organizations'),
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_organizations_list'),
       'page callback' =>  'onlinerecord_orgs_list',
@@ -35,7 +35,7 @@ function onlinerecord_menu()
 
     //Add orgs add-page
     $items['admin/settings/onlinerecord/orgs/add'] = array(
-      'title' => 'Add organization',
+      'title' => t('Add organization'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_orgs_form_add'),
       'access arguments' => array('administer onlinerecord'),
@@ -45,7 +45,7 @@ function onlinerecord_menu()
 
     //Add orgs edit-page
     $items['admin/settings/onlinerecord/orgs/%/edit'] = array(
-      'title' => 'Edit organization',
+      'title' => t('Edit organization'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_orgs_form_edit',4),
       'access arguments' => array('administer onlinerecord'),
@@ -56,7 +56,7 @@ function onlinerecord_menu()
       
     //Add orgs delete-page
     $items['admin/settings/onlinerecord/orgs/%/delete'] = array(
-      'title' => 'Delete organization',
+      'title' => t('Delete organization'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_orgs_form_delete_confirm',4),
       'access arguments' => array('administer onlinerecord'),
@@ -68,7 +68,7 @@ function onlinerecord_menu()
     /////////////////////////// Departments ////////////////////////////////////
     //Add depts main page
     $items['admin/settings/onlinerecord/depts'] = array(
-      'title' => 'OnlineRecord departments',
+      'title' => t('OnlineRecord departments'),
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_organizations_list'),
       'page callback' =>  'onlinerecord_depts_list',
@@ -79,7 +79,7 @@ function onlinerecord_menu()
 
     //Add depts add-page
     $items['admin/settings/onlinerecord/depts/add'] = array(
-      'title' => 'Add department',
+      'title' => t('Add department'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_depts_form_add'),
       'access arguments' => array('administer onlinerecord'),
@@ -89,7 +89,7 @@ function onlinerecord_menu()
 
     //Add depts edit-page
     $items['admin/settings/onlinerecord/depts/%/edit'] = array(
-      'title' => 'Edit department',
+      'title' => t('Edit department'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_depts_form_edit',4),
       'access arguments' => array('administer onlinerecord'),
@@ -100,7 +100,7 @@ function onlinerecord_menu()
 
     //Add depts delete-page
     $items['admin/settings/onlinerecord/depts/%/delete'] = array(
-      'title' => 'Delete department',
+      'title' => t('Delete department'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_depts_form_delete_confirm',4),
       'access arguments' => array('administer onlinerecord'),
@@ -113,7 +113,7 @@ function onlinerecord_menu()
     ////////////////////////////// Plans ///////////////////////////////////////
     //Add depts main page
     $items['admin/settings/onlinerecord/plans'] = array(
-      'title' => 'OnlineRecord Plans',
+      'title' => t('OnlineRecord Plans'),
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_organizations_list'),
       'page callback' =>  'onlinerecord_plans_list',
@@ -124,7 +124,7 @@ function onlinerecord_menu()
 
     //Add depts add-page
     $items['admin/settings/onlinerecord/plans/add'] = array(
-      'title' => 'Add plan',
+      'title' => t('Add plan'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_form_add'),
       'access arguments' => array('administer onlinerecord'),
@@ -134,7 +134,7 @@ function onlinerecord_menu()
 
     //Add depts edit-page
     $items['admin/settings/onlinerecord/plans/%/edit'] = array(
-      'title' => 'Edit plan',
+      'title' => t('Edit plan'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_form_edit',4),
       'access arguments' => array('administer onlinerecord'),
@@ -145,7 +145,7 @@ function onlinerecord_menu()
 
     //Add depts delete-page
     $items['admin/settings/onlinerecord/plans/%/delete'] = array(
-      'title' => 'Delete plan',
+      'title' => t('Delete plan'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_form_delete_confirm',4),
       'access arguments' => array('administer onlinerecord'),
@@ -157,7 +157,7 @@ function onlinerecord_menu()
     //////////////////////////// Exceptions ////////////////////////////////////
     //Add depts main page
     $items['admin/settings/onlinerecord/plans/%/exceptions'] = array(
-      'title' => 'Exceptions1',
+      'title' => t('Exceptions'),
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_exceptions_per_plan_list',4),
       //'page callback' =>  'onlinerecord_plans_list',
@@ -169,7 +169,7 @@ function onlinerecord_menu()
     );
 
     $items['admin/settings/onlinerecord/plans/%/exceptions/add'] = array(
-      'title' => 'Add exception',
+      'title' => t('Add exception'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_exceptions_per_plan_add',4),
       //'page callback' =>  'onlinerecord_exceptions_per_plan_add',
@@ -180,7 +180,7 @@ function onlinerecord_menu()
     );
 
     $items['admin/settings/onlinerecord/exceptions'] = array(
-      'title' => 'Exceptions1',
+      'title' => t('Exceptions'),
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_exceptions_per_plan_list',4),
       //'page callback' =>  'onlinerecord_plans_list',
@@ -192,7 +192,7 @@ function onlinerecord_menu()
     );
 
     $items['admin/settings/onlinerecord/exceptions/%/edit'] = array(
-      'title' => 'Edit exception',
+      'title' => t('Edit exception'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_exceptions_edit',4),
       //'page callback' =>  'onlinerecord_exceptions_per_plan_add',
@@ -203,7 +203,7 @@ function onlinerecord_menu()
     );
 
     $items['admin/settings/onlinerecord/exceptions/%/delete'] = array(
-      'title' => 'Delete exception',
+      'title' => t('Delete exception'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_exceptions_form_delete_confirm',4),
       //'page callback' =>  'onlinerecord_exceptions_per_plan_delete',
@@ -215,7 +215,7 @@ function onlinerecord_menu()
     //////////////////////////////////Services//////////////////////////////////
      //Add services main page
     $items['admin/settings/onlinerecord/services'] = array(
-      'title' => 'OnlineRecord services',
+      'title' => t('OnlineRecord services'),
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_organizations_list'),
       'page callback' =>  'onlinerecord_services_list',
@@ -226,7 +226,7 @@ function onlinerecord_menu()
 
     //Add services add-page
     $items['admin/settings/onlinerecord/services/add'] = array(
-      'title' => 'Add service',
+      'title' => t('Add service'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_services_form_add'),
       'access arguments' => array('administer onlinerecord'),
@@ -236,7 +236,7 @@ function onlinerecord_menu()
 
     //Add services edit-page
     $items['admin/settings/onlinerecord/services/%/edit'] = array(
-      'title' => 'Edit service',
+      'title' => t('Edit service'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_services_form_edit',4),
       'access arguments' => array('administer onlinerecord'),
@@ -247,7 +247,7 @@ function onlinerecord_menu()
 
     //Add services delete-page
     $items['admin/settings/onlinerecord/services/%/delete'] = array(
-      'title' => 'Delete service',
+      'title' => t('Delete service'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_services_form_delete_confirm',4),
       'access arguments' => array('administer onlinerecord'),
@@ -259,7 +259,7 @@ function onlinerecord_menu()
     ///////////////////////////////PLANS - SERVICES/////////////////////////////
      //Add services main page
     $items['admin/settings/onlinerecord/plans_services'] = array(
-      'title' => 'OnlineRecord services',
+      'title' => t('OnlineRecord services'),
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_organizations_list'),
       'page callback' =>  'onlinerecord_plans_services_list',
@@ -270,7 +270,7 @@ function onlinerecord_menu()
 
     //Add services add-page
     $items['admin/settings/onlinerecord/plans_services/add'] = array(
-      'title' => 'Add service',
+      'title' => t('Add service'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_services_form_add'),
       'access arguments' => array('administer onlinerecord'),
@@ -280,7 +280,7 @@ function onlinerecord_menu()
 
     //Add services delete-page
     $items['admin/settings/onlinerecord/plans_services/%/%/delete'] = array(
-      'title' => 'Delete service',
+      'title' => t('Delete service'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_services_form_delete_confirm',4),
       'access arguments' => array('administer onlinerecord'),
@@ -291,7 +291,7 @@ function onlinerecord_menu()
 
     //Plans
     $items['admin/settings/onlinerecord/plans/%/view'] = array(
-      'title' => 'View plan',
+      'title' => t('View plan'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_form_view',4),
       'access arguments' => array('administer onlinerecord'),
@@ -313,7 +313,7 @@ function onlinerecord_menu()
 
     //Cloning plans with all exceptions
     $items['admin/settings/onlinerecord/plans/%/clone'] = array(
-      'title' => 'Edit plan',
+      'title' => t('Clone plan'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_plans_form_clone',4),
       'access arguments' => array('administer onlinerecord'),
@@ -325,7 +325,7 @@ function onlinerecord_menu()
 
     /////////////////CHOOSE Service->Plans->Exceptions->records/////////////////
     $items['onlinerecord'] = array(
-      'title' => 'Onlinerecord',
+      'title' => t('Onlinerecord'),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_choose'),
       'access arguments' => array('access content'),
@@ -559,7 +559,8 @@ function onlinerecord_choose_submit($form, &$form_state)
       VALUES (%d,%d,%d,%d,'%s')",
       strtotime($choose_date),$choose_service_id,$plan_id,$time_val,$name);
     $inserted_id=intval(db_result(db_query('SELECT LAST_INSERT_ID()')));
-    $num_id=$kvantn.'-'.$inserted_id;
+    //$num_id=$kvantn.'-'.$inserted_id;
+    $num_id=$inserted_id;
 
     drupal_set_message(
       t('You\'ve been saved on time @time. @planh, your number is @num',
