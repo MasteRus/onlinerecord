@@ -11,7 +11,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
-"POT-Creation-Date: 2013-01-14 15:10+0600\n"
+"POT-Creation-Date: 2013-01-15 13:30+0600\n"
 "PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
 "Last-Translator: NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -100,7 +100,7 @@ msgstr ""
 msgid "type"
 msgstr ""
 
-#: onlinerecord.admin.inc:958
+#: onlinerecord.admin.inc:958 onlinerecord.module:395
 msgid "-"
 msgstr ""
 
@@ -176,58 +176,6 @@ msgstr ""
 msgid "Are you sure want to delete plan-service connection?"
 msgstr ""
 
-#: onlinerecord.module:363
-msgid "FIO"
-msgstr ""
-
-#: onlinerecord.module:394
-msgid "time"
-msgstr ""
-
-#: onlinerecord.module:395
-msgid "Make an appointment"
-msgstr ""
-
-#: onlinerecord.module:444
-msgid "Select service"
-msgstr ""
-
-#: onlinerecord.module:453
-msgid "Choose date"
-msgstr ""
-
-#: onlinerecord.module:465
-msgid "Next >>"
-msgstr ""
-
-#: onlinerecord.module:482
-msgid "Please enter your FIO."
-msgstr ""
-
-#: onlinerecord.module:496
-msgid "Please choose service."
-msgstr ""
-
-#: onlinerecord.module:503
-msgid "Please select date correctly. You can choose only !datef or later"
-msgstr ""
-
-#: onlinerecord.module:565
-msgid "You've been saved on time @time. @planh, your number is @num"
-msgstr ""
-
-#: onlinerecord.module:611
-msgid "@deptname , @orgname"
-msgstr ""
-
-#: onlinerecord.module:5
-msgid "administer onlinerecord"
-msgstr ""
-
-#: onlinerecord.module:5
-msgid "access onlinerecord"
-msgstr ""
-
 #: onlinerecord.module:17
 msgid "OnlineRecord"
 msgstr ""
@@ -272,7 +220,7 @@ msgstr ""
 msgid "Add plan"
 msgstr ""
 
-#: onlinerecord.module:137;316
+#: onlinerecord.module:137
 msgid "Edit plan"
 msgstr ""
 
@@ -281,7 +229,7 @@ msgid "Delete plan"
 msgstr ""
 
 #: onlinerecord.module:160;183
-msgid "Exceptions1"
+msgid "Exceptions"
 msgstr ""
 
 #: onlinerecord.module:172
@@ -316,8 +264,64 @@ msgstr ""
 msgid "View plan"
 msgstr ""
 
+#: onlinerecord.module:316
+msgid "Clone plan"
+msgstr ""
+
 #: onlinerecord.module:328
 msgid "Onlinerecord"
+msgstr ""
+
+#: onlinerecord.module:363
+msgid "FIO"
+msgstr ""
+
+#: onlinerecord.module:394
+msgid "time"
+msgstr ""
+
+#: onlinerecord.module:419
+msgid "Make an appointment"
+msgstr ""
+
+#: onlinerecord.module:444
+msgid "Select service"
+msgstr ""
+
+#: onlinerecord.module:453
+msgid "Choose date"
+msgstr ""
+
+#: onlinerecord.module:465
+msgid "Next >>"
+msgstr ""
+
+#: onlinerecord.module:482
+msgid "Please enter your FIO."
+msgstr ""
+
+#: onlinerecord.module:496
+msgid "Please choose service."
+msgstr ""
+
+#: onlinerecord.module:503
+msgid "Please select date correctly. You can choose only !datef or later"
+msgstr ""
+
+#: onlinerecord.module:566
+msgid "You've been saved on time @time. @planh, your number is @num"
+msgstr ""
+
+#: onlinerecord.module:612
+msgid "@deptname , @orgname"
+msgstr ""
+
+#: onlinerecord.module:5
+msgid "administer onlinerecord"
+msgstr ""
+
+#: onlinerecord.module:5
+msgid "access onlinerecord"
 msgstr ""
 
 #: onlinerecord.info:0
