@@ -228,6 +228,23 @@ function onlinerecord_schema() {
         ),
       ),
     );
+
+    $schema['onlinerecord_users_plans'] = array(
+    'description' => 'Table of services.',
+    'fields' => array(
+      'user_id' => array(
+        'description' => 'UID',
+        'type' => 'int',
+        'not null' => TRUE,
+        ),
+      'plan_id' => array(
+        'description' => 'Plan ID- main table',
+        'type' => 'int',
+        'not null' => TRUE,
+        ),
+      ),
+    );
+
 	
   return $schema;
 }
@@ -257,10 +274,30 @@ function onlinerecord_install() {
   }
 }
 
+
 /**
  * Implementation of hook_update_N().
  */
+function onlinerecord_update_6002() {
+  $schema['onlinerecord_users_plans'] = array(
+    'description' => 'Table of services.',
+    'fields' => array(
+      'user_id' => array(
+        'description' => 'UID',
+        'type' => 'int',
+        'not null' => TRUE,
+        ),
+      'plan_id' => array(
+        'description' => 'Plan ID- main table',
+        'type' => 'int',
+        'not null' => TRUE,
+        ),
+      ),
+  );
 
+  db_create_table($ret, 'onlinerecord_users_plans', $schema['onlinerecord_users_plans']);
+  return $ret;
+}
 
 /**
  * Implementation of hook_uninstall().
