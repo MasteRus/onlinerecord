@@ -365,6 +365,26 @@ function onlinerecord_menu()
       'type' => MENU_NORMAL_ITEM,
       //'file' => 'onlinerecord.admin.inc',
     );
+    $items['onlinerecord1'] = array(
+      'title' => 'View plan records by user',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('onlinerecord_records_by_user_view',4),
+      'access arguments' => array('administer onlinerecord'),
+      'type' => MENU_LOCAL_TASK,
+      //'file' => 'onlinerecord.admin.inc',
+    );
+    $items['onlinerecord1/callback1'] = array(
+      'page callback' => 'onlinerecord_records_by_user_view_callback1',
+      'access callback' => TRUE,
+      //'file' => 'onlinerecord.admin.inc',
+      'type' => MENU_CALLBACK,
+    );
+    $items['onlinerecord1/callback2'] = array(
+      'page callback' => 'onlinerecord_records_by_user_view_callback2',
+      'access callback' => TRUE,
+      //'file' => 'onlinerecord.admin.inc',
+      'type' => MENU_CALLBACK,
+    );
     return $items;
 }
 
@@ -616,7 +636,7 @@ function onlinerecord_choose_submit($form, &$form_state)
   }
 }
 
-function onlinerecord_choose_callback2(int $userid)
+function onlinerecord_choose_callback2()
 {
   
   $choosed_date='---';
@@ -875,4 +895,232 @@ function theme_onlinerecord_choose($form) {
 
   return $output;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////// plans view ////////////////////////////////////
+function onlinerecord_records_by_user_view(&$form_state)
+{
+  $dateformat='Y-m-d';
+  $datef=date($dateformat);
+
+  $default_choose_date = !empty($form_state['values']['choose_date']) ? $form_state['values']['choose_date'] : $datef;
+  //dpm($default_choose_date);
+
+  $form['choose_date'] = array(
+      '#title' => t('Enabled on'),
+      '#type' => 'date_select',
+      '#default_value' => $default_choose_date,
+      '#date_format' => $dateformat,
+      '#date_timezone' => 'Asia/Novosibirsk',
+      '#date_increment' => $kvant_value,
+      '#date_year_range' => '0:+1',
+      '#attributes' => array('class' => 'date-dropdown'),
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Load'),
+    '#ahah' => array(
+        'path' => 'onlinerecord1/callback1',
+        'wrapper' => 'dependent_dropdown_holder',
+      ),
+  );
+
+  $form['dependent_dropdown_holder'] = array(
+    '#value' => '<div id="dependent_dropdown_holder">?</div>'
+  );
+
+ return $form;
+}
+
+//function onlinerecord_records_by_user_view_callback2($form,&$form_state)
+function onlinerecord_records_by_user_view_callback2()
+{
+  //dpm($_POST['choose_date']);
+  dpm($form_state);
+  if (isset($_POST['choose_date']))
+    $choosed_date=check_plain($_POST['choose_date']['year']).'-'.$_POST['choose_date']['month'].'-'.$_POST['choose_date']['day'];
+  if ($choosed_date!="")
+    $chd=date('N',strtotime($choosed_date));
+  
+  drupal_json(array('status' => TRUE, 'data' => $choosed_date."=".strtotime($choosed_date)));
+
+}
+
+function onlinerecord_records_by_user_view_callback1()
+{
+  global $user;
+  $uid=$user->uid;
+
+    $choosed_date='---';
+  if (isset($_POST['choose_date']))
+    $choosed_date=check_plain($_POST['choose_date']['year']).'-'.$_POST['choose_date']['month'].'-'.$_POST['choose_date']['day'];
+
+  $ch_t=strtotime($choosed_date);
+
+  $result=db_query('SELECT p.plan_id, p.name AS planname, p.kvant_value, p.worktimestart, p.worktimefinish,
+    d.name AS deptname, o.name AS orgname, p.enabled_date, p.disabled_date
+    FROM {onlinerecord_users_plans} ups, {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
+    WHERE ups.plan_id=p.plan_id
+    AND p.dept_id=d.dept_id AND d.org_id=o.org_id
+    AND ups.user_id=%d
+    AND p.enabled_date<=%d AND %d<=p.disabled_date',$uid,$ch_t,$ch_t);
+  if ($choosed_date!="")
+    $chd=date('N',strtotime($choosed_date));
+
+  $dateformat='Y-m-d';
+
+  $i=0;
+  $tableData =array();
+
+  $pids=array();
+  $tableHeader = array('#', t('Time'),t('Record'),t('Service'),'except_id', t('type'),'-','-','-',t('time'));
+  $tableData = array();
+
+
+  while ($pid = db_fetch_object($result))
+  {
+    $i++;
+    $arg=$pid->plan_id;
+        //$header_table=$pid->planname." at ".$pid->deptname.", ".$pid->orgname;
+      $header_table=t('@deptname , @orgname',
+        array(
+          '@deptname'  => $pid->deptname,
+          '@orgname'  =>$pid->orgname)
+      );
+      $wts=$pid->worktimestart;
+      $wtf=$pid->worktimefinish;
+      $kvant_value=$pid->kvant_value;
+      $edate=$pid->enabled_date;
+      $ddate=$pid->disbled_date;
+    
+    // Get all exceptions from choosen plan
+    $result2=db_query('SELECT e.except_id, e.type, e.time_start, e.time_stop, e.daynumber, e.dateofexcept
+      FROM {onlinerecord_exceptions} e
+      WHERE e.plan_id=%d',$arg);
+    $i=0;
+    $excepts=array();
+    //exceptions to array
+    while ($except = db_fetch_object($result2))
+    {
+      $excepts[$i++]=$except;
+    }
+    $exceptscount=$i;
+
+    $result3=db_query("SELECT r.plan_id, r.kvant, r.name as recordname, r.birthyear, s.name as servicename
+      FROM {onlinerecord_records} r, {onlinerecord_services} s
+      WHERE r.plan_id =%d
+      AND r.recorddate=%d
+      AND r.services_id=s.service_id
+      ORDER BY r.plan_id",$arg,strtotime($choosed_date));
+
+    $services=array();
+    $records_by_date=array();
+    $records_by_date2=array();
+
+    while ($record= db_fetch_object($result3))
+    {
+      $records_by_date[$record->kvant]=true;
+      $records_by_date2[$record->kvant]=$record->recordname.", ".$record->birthyear;
+      $services[$record->kvant]=$record->servicename;
+    }
+
+    //preparing table header
+    //preparing count of kvants
+    $n=($wtf-$wts)/($kvant_value*60);
+
+    for ($i=0;$i<$n;$i++)
+    {
+      $temp=$wts+$i*$kvant_value*60;
+      $flag=true;
+      //check exceptions for current time
+      $excepts_ids="";
+      $excepts_types="";
+      for ($j=0;$j<$exceptscount;$j++)
+      {
+        //get excepts date
+        $tstart=intval($excepts[$j]->time_start);
+        $tstop=intval($excepts[$j]->time_stop);
+        $dn=intval($excepts[$j]->daynumber);
+        $dateofe=intval($excepts[$j]->dateofexcept);
+
+        //type of exceptions processing
+        switch (intval($excepts[$j]->type)) {
+          case 1:
+            // try beetwen exception time
+            if (($tstart<=$temp)&&($temp<=$tstop))
+            {
+              $flag=false;
+              $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
+              $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
+            }
+            break;
+          case 2:
+            if (($tstart<=$temp)&&($temp<=$tstop)&&($chd==$dn))
+            {
+              $flag=false;
+              $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
+              $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
+            }
+            break;
+          case 5:
+            if (($tstart<=$temp)&&($temp<=$tstop)&&(strtotime($choosed_date)==$dateofe))
+            {
+              $flag=false;
+              $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
+              $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
+            }
+            break;
+        }
+        //if ($flag!=true) break;
+      }
+
+
+      if (!$flag) $place=t("-");
+      else
+      {
+        if (!$records_by_date[$temp]) $place=t("Free");
+        else $place=$records_by_date2[$temp];
+      }
+      //InputData
+      $tableData[] = array(
+        $i,// Kvant number
+        strval((int)($temp/3600)).":".str_pad(strval((int)(($temp%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
+        $place,
+        $services[$temp],
+        $excepts_ids,
+        $excepts_types,
+        $header_table,//6
+        NULL,//7
+        NULL,//8
+        $temp
+      );
+    }
+    //drupal_json(array('status' => TRUE, 'data' => theme('table', $tableHeader, $tableData)));
+    //dpm(array_search(0, array(-1,-1,-1)));
+    usort($tableData,'onlinerecord_func_timecompare');
+    $display_array=array();
+    $display_header=array('#', t('Time'),t('Record'),t('Service'),t('Plan name'));
+    $flag=true;
+    $counter=0;
+    $counter2=0;
+    $temp_time=-1;
+    $i=0;
+    //Sortirovka dannih
+    $valuestosee_array=array();
+    foreach ($tableData as $arr_str)
+    {
+        $i++;
+        $display_array[]=array(
+          $i,//plan_id
+          $arr_str[1],//time
+          $arr_str[2],//record
+          $arr_str[3],//service name
+          $arr_str[6],
+          );
+    }
+  }
+  drupal_json(array('status' => TRUE, 'data' => theme('table', $display_header, $display_array)));
+}
+
 ?>
