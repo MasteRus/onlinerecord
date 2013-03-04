@@ -391,12 +391,13 @@ function onlinerecord_menu()
     'access arguments' => array('access content')
     );
 
-    $items['onlinerecord2'] = array(
-      'title' => 'Onlinerecord2',
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('onlinerecord_wizard'),
+    $items['onlinerecord-wizard'] = array(
+      'title' => 'onlinerecord-wizard',
+      //'page callback' => 'drupal_get_form',
+      //'page arguments' => array('onlinerecord_wizard'),
+      'page callback' => 'onlinerecord_wizard',
       'access arguments' => array('access content'),
-      'type' => MENU_NORMAL_ITEM,
+      //'type' => MENU_NORMAL_ITEM,
     );
 
      return $items;
@@ -1142,8 +1143,8 @@ function onlinerecord_wizard() {
     ctools_include('object-cache');
 
   $form_info = array(
-    'id' => 'wombat_basic',
-    'path' => "onlinerecord2/%step",
+    'id' => 'onlinerecord_form_basic',
+    'path' => "onlinerecord-wizard/%step",
     'show trail' => TRUE,
     'show back' => TRUE,
     'show cancel' => true,
@@ -1172,7 +1173,6 @@ function onlinerecord_wizard() {
       'step4' => array(
         'form id' => 'onlinerecord_step4_form'
       ),
-
     ),
   );
 
@@ -1181,7 +1181,7 @@ function onlinerecord_wizard() {
     'cache name' => NULL,
   );
   // no matter the step, you will load your values from the callback page
-  $record = onlinerecord__get_page_cache(NULL);
+  $record = onlinerecord_wizard_get_page_cache(NULL);
   if (!$record) {
     // set form to first step -- we have no data
     $step = current(array_keys($form_info['order']));
@@ -1198,6 +1198,23 @@ function onlinerecord_wizard() {
 
 function onlinerecord_step1_form(&$form, &$form_state) {
   $onlinerecord_form = &$form_state['onlinerecord_obj'];
+  $result=db_query('SELECT service_id, name, cabinet FROM {onlinerecord_services}');
+
+  $services=array();
+  $services[0]='---';
+  $i=0;
+  while ($service=db_fetch_array($result)) {
+    $i=intval($service['service_id']);
+    $services[$i]=$service['name'];
+  }
+
+  $default_choose_service_id = !empty($form_state['values']['choose_service_id']) ? $form_state['values']['choose_service_id'] : 0;
+  $form['choose_service_id'] = array(
+    '#title' => t('Select service'),
+    '#type' => 'select',
+    '#options' => $services,
+    '#default_value' => $default_choose_service_id,
+  );
   $form_state['no buttons'] = TRUE;
 }
 
@@ -1209,15 +1226,125 @@ function onlinerecord_step1_form(&$form, &$form_state) {
  * Saving happens at the end, within the $form_info['finish callback'];
  */
 function onlinerecord_step1_form_submit(&$from, &$form_state) {
-  $submitted = $form_state['values'];
-  foreach($save_values as $value) {
-    // set it in cstorage, the voodoo in part 3 will take care of the rest magically
-    $form_state['onlinerecord_obj']->$value = $submitted[$value];
-  }
+  //dpm($form_state);
+  $form_state['onlinerecord_obj']->choose_service_id = $form_state['values']['choose_service_id'];
 }
 
 function onlinerecord_step2_form(&$form, &$form_state) {
   $onlinerecord_form = &$form_state['onlinerecord_obj'];
+
+  $dateformat='Y-m-d';
+  $datef1=strtotime(date($dateformat, (time()+86400)));
+  $datef2=strtotime(date($dateformat, (time()+28*86400)));
+
+  $result=db_query('SELECT p.plan_id, p.name AS planname, p.kvant_value, p.worktimestart, p.worktimefinish,
+    d.name AS deptname, o.name AS orgname, p.enabled_date, p.disabled_date
+    FROM {onlinerecord_plans_services} ps, {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
+    WHERE ps.plan_id=p.plan_id
+    AND p.dept_id=d.dept_id AND d.org_id=o.org_id
+    AND ps.service_id=%d
+    AND p.enabled_date<=%d AND %d<=p.disabled_date',
+    intval($onlinerecord_form->choose_service_id),$datef1,$datef1);//@TODO @BUG Intersect of lines
+    
+  if ($choosed_date!="")
+    $chd=date('N',strtotime($choosed_date));
+
+  $plans=array();
+  $restricted_dates=array();
+  $i=0;
+  while ($pid = db_fetch_object($result))
+  {
+      $arg=$pid->plan_id;
+      $result2=db_query("SELECT e.except_id, e.type, e.time_start, e.time_stop, e.daynumber, e.dateofexcept
+        FROM {onlinerecord_exceptions} e
+        WHERE e.plan_id in ('%s')
+        ORDER BY plan_id",$arg);
+      $j=0;
+      $excepts=array();
+      //exceptions to array
+      while ($except = db_fetch_object($result2))
+      {
+        $excepts[$j++]=$except;
+      }
+      $exceptscount=$j;
+      $plans[$i]=array($pid,$excepts);
+  }
+
+  //$plans_count=count($plans);
+  //while ($pid = db_fetch_object($result))
+  $time1=microtime();
+  
+  for ($i=$datef1;$i<=$datef1+(28*86400);$i=$i+86400)
+  {
+    $flag=false;
+    //Try to use all plans
+    foreach ($plans as $pid)
+    {
+      $flag=false;
+      $plan_id=$pid[0]->plan_id;
+      $wts=$pid[0]->worktimestart;
+      $wtf=$pid[0]->worktimefinish;
+      $kvant_value=$pid[0]->kvant_value;
+      $edate=$pid[0]->enabled_date;
+      $ddate=$pid[0]->disbled_date;
+
+      $excepts=$pid[1];
+      $times_array=range(0,($wtf-$wts)/($kvant_value*60)-1);
+      //Try to find number of free quants for day for current plan
+      foreach ($excepts as $except)
+      {
+        $temp=array();
+        switch (intval($except->type)) {
+          case 1://Everyday exception
+            $temp=range(($except->time_start-$wts)/($kvant_value*60),($except->time_stop-$wts)/($kvant_value*60));
+            $times_array=array_diff($times_array,$temp);
+            break;
+          case 2://everyweek exception
+            if (intval($except->daynumber)==date('N',$i)) {
+              $temp=range(($except->time_start-$wts)/($kvant_value*60),($except->time_stop-$wts)/($kvant_value*60));
+              $times_array=array_diff($times_array,$temp);
+            }
+            break;
+          case 5://custom date
+            if (intval($except->dateofexcept)==intval($i)) {
+              $temp=range(($except->time_start-$wts)/($kvant_value*60),($except->time_stop-$wts)/($kvant_value*60));
+              $times_array=array_diff($times_array,$temp);
+            }
+            // try beetwen exception time
+            break;
+      
+        }
+        //@TODO @DECISION Do we need to insert for empty array???
+        if (empty($times_array))
+        {
+          $flag=true;
+          break;
+        }
+      }
+      if ($flag) {
+        break;
+      }
+
+    }
+    if ($flag) {
+      $restricted_dates['t'.$i]=date($dateformat,$i);
+      }
+    //dpm('plan_id='.$plan_id.', '.date($dateformat,$i).'='.count($times_array));
+  }
+  $settings['restricted_dates']=$restricted_dates;
+  drupal_add_js(array ('onlinerecord'=>$settings),'setting');
+  drupal_add_js(drupal_get_path('module','onlinerecord').'/onlinerecord.js');
+
+  $time2=microtime();
+  dpm($time2-$time1);
+  $form['choose_date'] = array(
+    '#title' => t('Enabled on'),
+    '#type' => 'date_popup',
+    '#default_value' => $datef,
+    '#date_format' => $dateformat,
+    '#datepicker_options' => array('minDate' => 0,'maxDate' => '+28D'),
+  );
+
   $form_state['no buttons'] = TRUE;
 }
 function onlinerecord_step2_form_submit(&$from, &$form_state) {
@@ -1227,6 +1354,59 @@ function onlinerecord_step2_form_submit(&$from, &$form_state) {
 
 function onlinerecord_step3_form(&$form, &$form_state) {
   $onlinerecord_form = &$form_state['onlinerecord_obj'];
+
+      if (isset($form_state['storage']['page_two'])) {
+        global $user;
+        //dpm($user);
+        $uid=$user->uid;
+
+        $vals=onlinerecord_choose_callback2();
+        $form=array();
+        //Add header for table_theme
+        $form['header'] = array(
+          '#type' => 'value',
+          '#value' => array(
+             //array('data' => '#', 'field' => 'kvant_number'),
+             //array('data' => 'Время', 'field' => 'time'),
+             //array('data' => t('Make an appointment'), 'field' => 'button'),
+             array('data' => t('time')),
+             array('data' => t('-')),
+          ),
+        );
+
+        $form['plan_id']['#tree']=TRUE;
+        $form['plan_header']['#tree']=TRUE;
+        $form['time_val']['#tree']=TRUE;
+        $form['kvant_number']['#tree']=TRUE;
+        foreach ($vals as $val)
+        {
+          if ($val[5]!=-1)
+          {
+              $form['plan_id'][$val[4]] = array('#type' => 'value','#value' =>$val[0][0]);
+              $form['plan_header'][$val[4]] = array('#type' => 'value','#value' =>$val[1][0]);
+              $form['time_val'][$val[4]] = array('#type' => 'value','#value' => $val[3]);
+
+              $form['time'][$val[4]] = array('#value' =>$val[2]);
+              //$form['time_value'][$val[4]] = array('#value' => $val[3]);
+              //$form['kvant_number'][$val[4]] = array('#value' => $val[4]);
+              $form['kvant_number'][$val[4]] = array('#type' => 'value','#value' => $val[4]);
+              if (!empty($val[0])&&(1==1))
+              {
+                $form['button'][$val[4]] =  array(
+                    '#type' => 'submit',
+                    '#value' => t('Make an appointment'),
+                    '#name' => 'button_'.$val[4],
+                    '#id' => 'save_step2',
+
+                );
+              } else {
+                $form['button'][$val[4]] =  array('#value' => "-");
+              }
+          }
+          $i++;
+        }
+    }
+
   $form_state['no buttons'] = TRUE;
 }
 function onlinerecord_step3_form_submit(&$from, &$form_state) {
@@ -1235,6 +1415,26 @@ function onlinerecord_step3_form_submit(&$from, &$form_state) {
 
 function onlinerecord_step4_form(&$form, &$form_state) {
   $onlinerecord_form = &$form_state['onlinerecord_obj'];
+   $form['name'] =  array(
+      '#title' => t('FIO'),
+      '#type' => 'textfield',
+      '#default_value' =>'',
+    );
+    /*
+    $form['birthyear'] =  array(
+      '#type' => 'textfield',
+      '#title' => t('Date of birth'),
+      '#default_value' =>'',
+    );
+    */
+/*
+    $form['submit'] =  array(
+      '#type' => 'submit',
+      '#value' => t('Save'),
+      '#name' => 'savebutton',
+      '#id' =>'savebutton_step3',
+    );
+  */
   $form_state['no buttons'] = TRUE;
 }
 function onlinerecord_step4_form_submit(&$from, &$form_state) {
