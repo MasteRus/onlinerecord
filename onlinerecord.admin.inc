@@ -1780,4 +1780,126 @@ function onlinerecord_plans_services_list()
     return theme('table', $tableHeader, $tableData);
 }
 
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////Users - Services/////////////////////////////////
+function onlinerecord_users_plans_form_add(&$form_state)
+{
+    $result=db_query('SELECT p.plan_id, p.name as pname, d.name as dname, o.name AS oname
+      FROM   {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
+      WHERE p.dept_id=d.dept_id
+      AND d.org_id=o.org_id');
+    $plans=array();
+    $plans[-1]="---";
+    while ($plan = db_fetch_object($result))
+    {
+      $plans[$plan->plan_id]=$plan->pname." at ".$plan->dname." | ".$plan->oname;
+    }
+
+    $result=db_query('SELECT uid, name
+      FROM   {users}');
+    $users=array();
+    $users[-1]="---";
+    while ($user = db_fetch_object($result))
+    {
+      $users[$user->uid]=$user->name;
+    }
+
+    $form['user_id'] = array(
+      '#title' => t('user'),
+      '#type' => 'select',
+      '#options' => $users,
+      '#default_value' => -1,
+    );
+    
+    $form['plan_id'] = array(
+      '#title' => t('Plans'),
+      '#type' => 'select',
+      '#options' => $plans,
+      '#default_value' => -1,
+    );
+
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Add'),
+    );
+  return $form;
+}
+
+function onlinerecord_users_plans_form_add_submit($form, &$form_state)
+{
+    //$str=check_plain($form_state['values']['neworganization']);
+    $plan_id=$form_state['values']['plan_id'];
+    $user_id=$form_state['values']['user_id'];
+    $result=db_query("INSERT INTO {onlinerecord_users_plans} (user_id,plan_id) VALUES (%d,%d)",$user_id,$plan_id);
+}
+
+function onlinerecord_users_plans_form_delete_confirm(&$form_state)
+{
+    $message=t('Are you sure want to delete user-plan connection?');
+    $arg1=check_plain(arg(4));
+    $arg2=check_plain(arg(5));
+    $result=db_query("Select user_id, plan_id FROM {onlinerecord_users_plans}
+      WHERE user_id=%d AND plan_id=%d",intval($arg1),intval($arg2));
+
+    $org = db_fetch_object($result);
+    if (isset($org))
+    {
+      $form['user_id']=array(
+        '#type' => 'value',
+        '#value' => $arg1,
+      );
+      $form['plan_id']=array(
+        '#type' => 'value',
+        '#value' => $arg2,
+      );
+      return confirm_form(
+        $form,
+        $message,
+        'admin/settings/onlinerecord/users_plans',
+        '<i>this operation could not be canceled!</i>',
+        'Delete',
+        'Cancel'
+      );
+    }
+}
+
+function onlinerecord_users_plans_form_delete_confirm_submit($form, &$form_state)
+{
+    if ($form_state['values']['confirm']) {
+      $user_id=$form_state['values']['user_id'];
+      $plan_id=$form_state['values']['plan_id'];
+
+      db_query("DELETE FROM {onlinerecord_users_plans}
+      WHERE user_id=%d AND plan_id=%d",$user_id,$plan_id);
+      drupal_set_message('The user_plan connection was deleted','status');
+      $form_state['redirect']='admin/settings/onlinerecord/users_plans/';
+      //@TODO - Plan, and records in online_record controls
+    }
+}
+
+
+function onlinerecord_users_plans_list()
+{
+    $result=db_query('SELECT u.uid, u.name as username, p.plan_id, p.name as planname
+      FROM {users} u, {onlinerecord_plans} p, {onlinerecord_users_plans} upl
+      WHERE upl.user_id=u.uid AND p.plan_id=upl.plan_id');
+    $tableHeader = array('Uid', 'username','plan_id','planname','Actions');
+    $tableData = array();
+
+    while ($org = db_fetch_object($result))
+    {
+        $actions = l('удалить', 'admin/settings/onlinerecord/users_plans/'.$org->uid.'/' . $org->plan_id. '/delete/', array('alias' => true));
+
+        $tableData[] = array(
+            $org->uid,
+            $org->username,
+            $org->plan_id,
+            $org->planname,
+            $actions,
+        );
+    }
+    return theme('table', $tableHeader, $tableData);
+}
+
 ?>
