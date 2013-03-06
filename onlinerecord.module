@@ -373,6 +373,7 @@ function onlinerecord_menu()
       'type' => MENU_LOCAL_TASK,
       //'file' => 'onlinerecord.admin.inc',
     );
+
     $items['onlinerecord1/callback1'] = array(
       'page callback' => 'onlinerecord_records_by_user_view_callback1',
       'access callback' => TRUE,
@@ -385,11 +386,6 @@ function onlinerecord_menu()
       //'file' => 'onlinerecord.admin.inc',
       'type' => MENU_CALLBACK,
     );
-    $items['wombat'] = array(
-    'title' => 'Wombat Wizard',
-    'page callback' => 'wombat_wizard',
-    'access arguments' => array('access content')
-    );
 
     $items['onlinerecord-wizard'] = array(
       'title' => 'onlinerecord-wizard',
@@ -400,7 +396,7 @@ function onlinerecord_menu()
       //'type' => MENU_NORMAL_ITEM,
     );
 
-     return $items;
+    return $items;
 }
 
 /**
@@ -1164,7 +1160,7 @@ function onlinerecord_wizard() {
     ctools_include('object-cache');
 
   $form_info = array(
-    'id' => 'onlinerecord_form_basic',
+    'id' => 'onlinerecord_form_cache',
     'path' => "onlinerecord-wizard/%step",
     'show trail' => TRUE,
     'show back' => TRUE,
@@ -1207,7 +1203,7 @@ function onlinerecord_wizard() {
     // set form to first step -- we have no data
     $step = current(array_keys($form_info['order']));
     $record = new stdClass();
-    ctools_object_cache_set('onlinerecord_form_basic', $form_state['cache name'], $record);
+    ctools_object_cache_set('onlinerecord_form_cache', $form_state['cache name'], $record);
   }
   //THIS IS WHERE WILL STORE ALL FORM DATA
   $form_state['onlinerecord_obj'] = $record;
@@ -1228,8 +1224,7 @@ function onlinerecord_step1_form(&$form, &$form_state) {
     $i=intval($service['service_id']);
     $services[$i]=$service['name'];
   }
-
-  $default_choose_service_id = !empty($form_state['values']['choose_service_id']) ? $form_state['values']['choose_service_id'] : 0;
+  $default_choose_service_id = !empty($onlinerecord_form->choose_service_id) ? $onlinerecord_form->choose_service_id : 0;
   $form['choose_service_id'] = array(
     '#title' => t('Select service'),
     '#type' => 'select',
@@ -1239,6 +1234,11 @@ function onlinerecord_step1_form(&$form, &$form_state) {
   $form_state['no buttons'] = TRUE;
 }
 
+function onlinerecord_step1_form_validate(&$form, &$form_state) {
+  $choose_service_id=$form_state['values']['choose_service_id'];
+  if (!$choose_service_id)
+    form_set_error('choose_service_id', t('Please choose service.'));
+}
 
 /**
  * KEY CONCEPT: generally, you will never save data here -- you will simply add values to the
@@ -1358,16 +1358,29 @@ function onlinerecord_step2_form(&$form, &$form_state) {
 
   $time2=microtime();
   //dpm($time2-$time1);
+
+  $default_date = !empty($onlinerecord_form->choose_date) ? $onlinerecord_form->choose_date : '';
   $form['choose_date'] = array(
     '#title' => t('Enabled on'),
     '#type' => 'date_popup',
-    '#default_value' => $datef,
+    '#default_value' => $default_date,
     '#date_format' => $dateformat,
-    '#datepicker_options' => array('minDate' => 0,'maxDate' => '+28D'),
+    '#datepicker_options' => array('minDate' => 1,'maxDate' => '+28D'),
   );
 
   $form_state['no buttons'] = TRUE;
 }
+
+function onlinerecord_step2_form_validate(&$form, &$form_state) {
+  $choose_date=$form_state['values']['choose_date'];
+  $dateformat='Y-m-d';
+  $datef=date($dateformat, (time()+86400));
+  if (strtotime($choose_date)<strtotime($datef))
+  {
+      form_set_error('choose_date', t('Please select date correctly. You can choose only !datef or later',array('!datef' => $datef)));
+  }
+}
+
 function onlinerecord_step2_form_submit(&$from, &$form_state) {
   $form_state['onlinerecord_obj']->choose_date = $form_state['values']['choose_date'];
 }
@@ -1376,13 +1389,10 @@ function onlinerecord_step2_form_submit(&$from, &$form_state) {
 function onlinerecord_step3_form(&$form, &$form_state) {
   $onlinerecord_form = &$form_state['onlinerecord_obj'];
 
-
   $choosed_date=$onlinerecord_form->choose_date;
   $choose_service_id=$onlinerecord_form->choose_service_id;
   $vals=onlinerecord_choose_callback3($choosed_date, $choose_service_id);
 
-  //$form=array();
-  //Add header for table_theme
   $form['header'] = array(
     '#type' => 'value',
     '#value' => array(
@@ -1420,22 +1430,13 @@ function onlinerecord_step3_form(&$form, &$form_state) {
               '#id' => 'save_step2',
               '#next' => 'step4',
               '#wizard type' => 'next',
-              //'#executes_submit_callback' => TRUE,
-              //'#sumbit' =>array('onlinerecord_wizard_next'),
-
           );
-          
-    
         } else {
           $form['button'][$val[4]] =  array('#value' => "-");//
         }
     }
     $i++;
   }
-  //dpm($form['buttons']);
-  
-  //$form['#sumbit'][]='onlinerecord_step3_form_submit';
-  //$form_state['no buttons'] = TRUE;
 }
 function onlinerecord_step3_form_submit(&$from, &$form_state) {
   $num=explode('_',$form_state['clicked_button']['#name']);
@@ -1444,17 +1445,15 @@ function onlinerecord_step3_form_submit(&$from, &$form_state) {
   $form_state['onlinerecord_obj']->plan_header = $form_state['values']['plan_header'][(int)($num[1])];
   $form_state['onlinerecord_obj']->time_val=$form_state['values']['time_val'][(int)($num[1])];
   $form_state['onlinerecord_obj']->kvant_number=$form_state['values']['kvant_number'][(int)($num[1])];
-
-  //dpm($form_state['values']);
-  //dpm($form_state['onlinerecord_obj']);
 }
 
 function onlinerecord_step4_form(&$form, &$form_state) {
   $onlinerecord_form = &$form_state['onlinerecord_obj'];
+  $default_name = !empty($onlinerecord_form->name) ? $onlinerecord_form->name : '';
    $form['name'] =  array(
       '#title' => t('FIO'),
       '#type' => 'textfield',
-      '#default_value' =>'',
+      '#default_value' =>$default_name,
     );
     /*
     $form['birthyear'] =  array(
@@ -1473,6 +1472,14 @@ function onlinerecord_step4_form(&$form, &$form_state) {
   */
   $form_state['no buttons'] = TRUE;
 }
+
+function onlinerecord_step4_form_validate(&$form, &$form_state) {
+    $recordname= $form_state['values']['name'];
+    if (!$recordname) {
+        form_set_error('name', t('Please enter your FIO.'));
+    }
+}
+
 function onlinerecord_step4_form_submit(&$from, &$form_state) {
   $form_state['onlinerecord_obj']->name = $form_state['values']['name'];
 
@@ -1516,7 +1523,7 @@ function onlinerecord_wizard_submit(&$form_state) {
       )
     );
     // Clear the cache
-    ctools_object_cache_clear('onlinerecord_form_basic', $form_state['cache name']);
+    ctools_object_cache_clear('onlinerecord_form_cache', $form_state['cache name']);
     $form_state['redirect']=$redirect->redirect;
 }
 /**
@@ -1546,226 +1553,6 @@ function  onlinerecord_wizard_clear_page_cache($name) {
  */
 function onlinerecord_wizard_get_page_cache($name) {
   $cache = ctools_object_cache_get('onlinerecord_form_cache', $name);
-  return $cache;
-}
-
-/*----- PART I CTOOLS WIZARD IMPLMENTATION ----- */
-
-/**
- * menu callback for the multistep form
- * step is whatever arg one is -- and will refer to the keys listed in
- * $form_info['order'], and $form_info['forms'] arrays
- */
-function wombat_wizard() {
-  // merlin hits that there's a better way to figure out the step
-  $step = arg(1);
-  // required includes for wizard
-  ctools_include('wizard');
-  ctools_include('object-cache');
-
-  // *** SETUP ARRAY multistep setup **** see docs code
-  $form_info = array(
-    'id' => 'wombat_basic',
-    'path' => "wombat/%step",
-    'show trail' => TRUE,
-    'show back' => TRUE,
-    'show cancel' => true,
-    'show return' =>false,
-    'next text' => 'Proceed to next step',
-    'next callback' =>  'wombat_basic_add_subtask_next',
-    'finish callback' => 'wombat_basic_add_subtask_finish',
-    'return callback' => 'wombat_basic_add_subtask_finish',
-    'cancel callback' => 'wombat_basic_add_subtask_cancel',
-    'order' => array(
-      'create' => t('Step 1: Create Wombat'),
-      'deploy' => t('Step 2: Deploy Wombat'),
-    ),
-    'forms' => array(
-      'create' => array(
-
-        'form id' => 'wombat_add_form'
-      ),
-      'deploy' => array(
-        'form id' => 'wombat_deployment_form'
-      ),
-    ),
-  );
-
-  // *** SETTING THE FORM UP FOR MULTISTEP *** //
-  $form_state = array(
-    'cache name' => NULL,
-  );
-  // no matter the step, you will load your values from the callback page
-  $wombat = wombat_basic_get_page_cache(NULL);
-  if (!$wombat) {
-    // set form to first step -- we have no data
-    $step = current(array_keys($form_info['order']));
-    $wombat = new stdClass();
-    // all battlewombats are fuzzy, fyi
-    $wombat->fur_texture = 'Very fuzzy';
-    // ** set the storage object so its ready for whatever comes next
-    ctools_object_cache_set('wombat_basic', $form_state['cache name'], $wombat);
-  }
-  //THIS IS WHERE WILL STORE ALL FORM DATA
-  $form_state['wombat_obj'] = $wombat;
-
-  // and this is the witchcraft that makes it work
-  $output = ctools_wizard_multistep_form($form_info, $step, $form_state);
-  return $output;
-}
-
-/*-------------------------- PART 2 JUST CLASSIC FORMAPI  ---------------------- */
-
-/**
- * All forms within this wizard will take $form, and $form_state by reference
- * note that the form doesn't have a return value.
- */
-function wombat_add_form(&$form, &$form_state) {
-  $wombat = &$form_state['wombat_obj'];
-  $form['name'] = array(
-    '#type' => 'textfield',
-    '#required' => 1,
-    '#title' => 'Wombat name',
-    '#default_value' => $wombat->name,
-  );
-  $form['temperment'] = array(
-    '#title' => 'Temperment',
-    '#type' => 'radios',
-    '#required' => 1,
-    '#default_value' => $wombat->temperment,
-    '#options' => array(
-      'docile' => 'Docile',
-      'irritable' => 'Irritable',
-      'dangerous' => 'Dangerous',
-    )
-  );
-  $form_state['no buttons'] = TRUE;
-}
-
-/**
- * Note that this validate callback operates exactly like it does in the regular form api
- */
-function wombat_add_form_validate(&$from, &$form_state) {
-  if ($form_state['values']['name'] == 'billy') {
-    form_set_error('name', 'No wombat is allowed to be named billy!');
-  }
-}
-
-/**
- * KEY CONCEPT: generally, you will never save data here -- you will simply add values to the
- * yet to be saved ctools_cache object.
- *
- * Saving happens at the end, within the $form_info['finish callback'];
- */
-function wombat_add_form_submit(&$from, &$form_state) {
-  $submitted = $form_state['values'];
-  $save_values = array('name', 'temperment');
-  foreach($save_values as $value) {
-    // set it in cstorage, the voodoo in part 3 will take care of the rest magically
-    $form_state['wombat_obj']->$value = $submitted[$value];
-  }
-}
-
-
-function wombat_deployment_form(&$form, &$form_state) {
-  $wombat = &$form_state['wombat_obj'];
-  $dutys = array(
-    'fuzzball' => 'Provide a fuzzball',
-    'noise-maker' => 'Make irritating noises'
-  );
-  /* we give different duty options based on wombat temper */
-  switch($wombat->temperment) {
-    case 'docile':
-      // only docile wombats allow themselves to become fatballs
-      $dutys['fatball'] = 'Sit around and be fat';
-      break;
-    case 'irritable':
-      $dutys['menace'] = 'Basic Menace Duties';
-      break;
-    case 'dangerous':
-      $dutys['menace'] = 'Basic Menace Duties';
-      $dutys['scratch'] = "Scratch warfare";
-      $dutys['bite'] = "Bite warfare";
-      break;
-  }
-  $form['name'] = array(
-    '#type' => 'item',
-    '#title' => 'Wombat name',
-    '#value' => $wombat->name,
-  );
-  $form['temper'] = array(
-    '#type' => 'item',
-    '#title' => 'Temperment',
-    '#value' => $wombat->temperment,
-  );
-  $form['duties'] = array(
-    '#type' => 'checkboxes',
-    '#tree' => true,
-    '#options' => $dutys,
-    '#title' => 'Duties',
-    '#value' => $wombat->duties,
-    '#required' => 1,
-  );
-  $form_state['no buttons'] = TRUE;
-}
-
-
-/**
- * Same idea as previous steps submit
- */
-function wombat_deployment_form_submit(&$form, &$form_state) {
-  $form_state['wombat_obj']->duties = $form_state['values']['duties'];
-}
-
-/*----PART 3 CTOOLS CALLBACKS -- these usually don't have to be very unique  ---------------------- */
-
-/**
- * Callback generated when the add page process is finished.
- * this is where you'd normally save.
- */
-function wombat_basic_add_subtask_finish(&$form_state) {
-  $wombat = &$form_state['wombat_obj'];
-  drupal_set_message('Wombat '.$wombat->name.' successfully deployed. Wombat will be assigned the following duties: '.implode(",", $wombat->duties)).'.';
-  // Clear the cache
-  ctools_object_cache_clear('wombat_basic', $form_state['cache name']);
-  $form_state['redirect'] = 'wombat';
-}
-
-/**
- * Callback for the proceed step
- *
- */
-function wombat_basic_add_subtask_next(&$form_state) {
-  $wombat = &$form_state['wombat_obj'];
-  $cache = ctools_object_cache_set('wombat_basic', $form_state['cache name'], $wombat);
-}
-
-/**
- * Callback generated when the 'cancel' button is clicked.
- *
- * All we do here is clear the cache.
- */
-function wombat_basic_add_subtask_cancel(&$form_state) {
-  // Update the cache with changes.
-  ctools_object_cache_clear('wombat_basic', $form_state['cache name']);
-  $form_state['redirect'] = 'wombat';
-  drupal_set_message('Coward.');
-}
-
-/*----PART 4 CTOOLS FORM STORAGE HANDLERS -- these usually don't have to be very unique  ---------------------- */
-
-/**
- * Remove an item from the object cache.
- */
-function  wombat_basic_clear_page_cache($name) {
-  ctools_object_cache_clear('wombat_basic', $name);
-}
-
-/**
- * Get the cached changes to a given task handler.
- */
-function wombat_basic_get_page_cache($name) {
-  $cache = ctools_object_cache_get('wombat_basic', $name);
   return $cache;
 }
 
@@ -1982,5 +1769,11 @@ function onlinerecord_choose_callback3($choosed_date, $choose_service_id)
               $valtosave,
               );
     return $display_array;
+}
+
+
+function onlinerecordtest_callback1()
+{
+  drupal_json(array('status' => TRUE, 'data' => 'test'));
 }
 ?>
