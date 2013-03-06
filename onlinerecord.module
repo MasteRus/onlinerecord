@@ -888,6 +888,9 @@ function onlinerecord_theme() {
     'onlinerecord_choose' => array(
       'arguments' => array('form' => NULL),
     ),
+    'onlinerecord_step3_form' => array(
+      'arguments' => array('form' => NULL),
+    ),
   );
 }
 
@@ -909,6 +912,24 @@ function theme_onlinerecord_choose($form) {
   return $output;
 }
 
+function theme_onlinerecord_step3_form($form) {
+  $rows = array();
+  foreach (element_children($form['kvant_number']) as $key) {
+    $rows[] = array(
+      //drupal_render($form['kvant_number'][$key]), // дата создания
+      drupal_render($form['time'][$key]),
+      //drupal_render($form['time_value'][$key]),   // заголовок
+
+      drupal_render($form['button'][$key])
+    );
+    
+  }
+
+  $output = theme('table', $form['header']['#value'], $rows); // выводим таблицу
+  $output .= drupal_render($form);                            // выводим остальную часть формы
+
+  return $output;
+}
 ////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// plans view ////////////////////////////////////
 function onlinerecord_records_by_user_view(&$form_state)
@@ -950,7 +971,7 @@ function onlinerecord_records_by_user_view(&$form_state)
 function onlinerecord_records_by_user_view_callback2()
 {
   //dpm($_POST['choose_date']);
-  dpm($form_state);
+  //dpm($form_state);
   if (isset($_POST['choose_date']))
     $choosed_date=check_plain($_POST['choose_date']['year']).'-'.$_POST['choose_date']['month'].'-'.$_POST['choose_date']['day'];
   if ($choosed_date!="")
@@ -1336,7 +1357,7 @@ function onlinerecord_step2_form(&$form, &$form_state) {
   drupal_add_js(drupal_get_path('module','onlinerecord').'/onlinerecord.js');
 
   $time2=microtime();
-  dpm($time2-$time1);
+  //dpm($time2-$time1);
   $form['choose_date'] = array(
     '#title' => t('Enabled on'),
     '#type' => 'date_popup',
@@ -1348,69 +1369,84 @@ function onlinerecord_step2_form(&$form, &$form_state) {
   $form_state['no buttons'] = TRUE;
 }
 function onlinerecord_step2_form_submit(&$from, &$form_state) {
-
+  $form_state['onlinerecord_obj']->choose_date = $form_state['values']['choose_date'];
 }
 
 
 function onlinerecord_step3_form(&$form, &$form_state) {
   $onlinerecord_form = &$form_state['onlinerecord_obj'];
 
-      if (isset($form_state['storage']['page_two'])) {
-        global $user;
-        //dpm($user);
-        $uid=$user->uid;
 
-        $vals=onlinerecord_choose_callback2();
-        $form=array();
-        //Add header for table_theme
-        $form['header'] = array(
-          '#type' => 'value',
-          '#value' => array(
-             //array('data' => '#', 'field' => 'kvant_number'),
-             //array('data' => 'Время', 'field' => 'time'),
-             //array('data' => t('Make an appointment'), 'field' => 'button'),
-             array('data' => t('time')),
-             array('data' => t('-')),
-          ),
-        );
+  $choosed_date=$onlinerecord_form->choose_date;
+  $choose_service_id=$onlinerecord_form->choose_service_id;
+  $vals=onlinerecord_choose_callback3($choosed_date, $choose_service_id);
 
-        $form['plan_id']['#tree']=TRUE;
-        $form['plan_header']['#tree']=TRUE;
-        $form['time_val']['#tree']=TRUE;
-        $form['kvant_number']['#tree']=TRUE;
-        foreach ($vals as $val)
+  //$form=array();
+  //Add header for table_theme
+  $form['header'] = array(
+    '#type' => 'value',
+    '#value' => array(
+           //array('data' => '#', 'field' => 'kvant_number'),
+           //array('data' => 'Время', 'field' => 'time'),
+           //array('data' => t('Make an appointment'), 'field' => 'button'),
+    array('data' => t('time')),
+    array('data' => t('-')),
+    ),
+  );
+
+  $form['plan_id']['#tree']=TRUE;
+  $form['plan_header']['#tree']=TRUE;
+  $form['time_val']['#tree']=TRUE;
+  $form['kvant_number']['#tree']=TRUE;
+  $form['button']['#tree']=TRUE;
+  foreach ($vals as $val)
+  {
+    if ($val[5]!=-1)
+    {
+        $form['plan_id'][$val[4]] = array('#type' => 'value','#value' =>$val[0][0]);
+        $form['plan_header'][$val[4]] = array('#type' => 'value','#value' =>$val[1][0]);
+        $form['time_val'][$val[4]] = array('#type' => 'value','#value' => $val[3]);
+
+        $form['time'][$val[4]] = array('#value' =>$val[2]);
+        //$form['time_value'][$val[4]] = array('#value' => $val[3]);
+        //$form['kvant_number'][$val[4]] = array('#value' => $val[4]);
+        $form['kvant_number'][$val[4]] = array('#type' => 'value','#value' => $val[4]);
+        if (!empty($val[0])&&(1==1))
         {
-          if ($val[5]!=-1)
-          {
-              $form['plan_id'][$val[4]] = array('#type' => 'value','#value' =>$val[0][0]);
-              $form['plan_header'][$val[4]] = array('#type' => 'value','#value' =>$val[1][0]);
-              $form['time_val'][$val[4]] = array('#type' => 'value','#value' => $val[3]);
+          $form['button'][$val[4]] =  array(
+              '#type' => 'submit',
+              '#value' => t('Make an appointment'),
+              '#name' => 'button_'.$val[4],
+              '#id' => 'save_step2',
+              '#next' => 'step4',
+              '#wizard type' => 'next',
+              //'#executes_submit_callback' => TRUE,
+              //'#sumbit' =>array('onlinerecord_wizard_next'),
 
-              $form['time'][$val[4]] = array('#value' =>$val[2]);
-              //$form['time_value'][$val[4]] = array('#value' => $val[3]);
-              //$form['kvant_number'][$val[4]] = array('#value' => $val[4]);
-              $form['kvant_number'][$val[4]] = array('#type' => 'value','#value' => $val[4]);
-              if (!empty($val[0])&&(1==1))
-              {
-                $form['button'][$val[4]] =  array(
-                    '#type' => 'submit',
-                    '#value' => t('Make an appointment'),
-                    '#name' => 'button_'.$val[4],
-                    '#id' => 'save_step2',
-
-                );
-              } else {
-                $form['button'][$val[4]] =  array('#value' => "-");
-              }
-          }
-          $i++;
+          );
+          
+    
+        } else {
+          $form['button'][$val[4]] =  array('#value' => "-");//
         }
     }
-
-  $form_state['no buttons'] = TRUE;
+    $i++;
+  }
+  //dpm($form['buttons']);
+  
+  //$form['#sumbit'][]='onlinerecord_step3_form_submit';
+  //$form_state['no buttons'] = TRUE;
 }
 function onlinerecord_step3_form_submit(&$from, &$form_state) {
+  $num=explode('_',$form_state['clicked_button']['#name']);
+  
+  $form_state['onlinerecord_obj']->plan_id = $form_state['values']['plan_id'][(int)($num[1])];
+  $form_state['onlinerecord_obj']->plan_header = $form_state['values']['plan_header'][(int)($num[1])];
+  $form_state['onlinerecord_obj']->time_val=$form_state['values']['time_val'][(int)($num[1])];
+  $form_state['onlinerecord_obj']->kvant_number=$form_state['values']['kvant_number'][(int)($num[1])];
 
+  //dpm($form_state['values']);
+  //dpm($form_state['onlinerecord_obj']);
 }
 
 function onlinerecord_step4_form(&$form, &$form_state) {
@@ -1438,15 +1474,50 @@ function onlinerecord_step4_form(&$form, &$form_state) {
   $form_state['no buttons'] = TRUE;
 }
 function onlinerecord_step4_form_submit(&$from, &$form_state) {
+  $form_state['onlinerecord_obj']->name = $form_state['values']['name'];
 
 }
 
 function onlinerecord_wizard_submit(&$form_state) {
   $onlinerecord_form = &$form_state['onlinerecord_obj'];
-  //drupal_set_message('Wombat '.$wombat->name.' successfully deployed. Wombat will be assigned the following duties: '.implode(",", $wombat->duties)).'.';
-  // Clear the cache
-  //ctools_object_cache_clear('wombat_basic', $form_state['cache name']);
-  //$form_state['redirect'] = 'wombat';
+
+    $choose_service_id=intval($onlinerecord_form->choose_service_id);
+    $choose_date=$onlinerecord_form->choose_date;
+    $result=db_query('Select redirect FROM {onlinerecord_services} where service_id=%d',$choose_service_id );
+      $redirect = db_fetch_object($result);
+
+    $plan_id=intval($onlinerecord_form->plan_id);
+    $plan_header=$onlinerecord_form->plan_header;
+    $time_val=intval($onlinerecord_form->time_val);
+    $kvantn=intval($onlinerecord_form->kvant_number);
+    $name=$onlinerecord_form->name;
+    /*$birthyear=$form_state['values']['birthyear'];
+
+    $result=db_query("INSERT INTO {onlinerecord_records}
+      (recorddate,services_id,plan_id,kvant,name,birthyear)
+      VALUES (%d,%d,%d,%d,'%s','%s')",
+      strtotime($choose_date),$choose_service_id,$plan_id,$kvant_number,$name,$birthyear);
+     */
+    $result=db_query("INSERT INTO {onlinerecord_records}
+      (recorddate,services_id,plan_id,kvant,name)
+      VALUES (%d,%d,%d,%d,'%s')",
+      strtotime($choose_date),$choose_service_id,$plan_id,$time_val,$name);
+    $inserted_id=intval(db_result(db_query('SELECT LAST_INSERT_ID()')));
+    //$num_id=$kvantn.'-'.$inserted_id;
+    $num_id=$inserted_id;
+
+    drupal_set_message(
+      t('You\'ve been saved on time @time. @planh, your number is @num',
+        array(
+          '@time'=>strval((int)($time_val/3600)).":".str_pad(strval((int)(($time_val%3600)/60)),2,'0',STR_PAD_LEFT),//time in format hh:mm,
+          '@planh'=>$plan_header,
+          '@num'=>$num_id,
+        )
+      )
+    );
+    // Clear the cache
+    ctools_object_cache_clear('onlinerecord_form_basic', $form_state['cache name']);
+    $form_state['redirect']=$redirect->redirect;
 }
 /**
  * Callback for the proceed step
@@ -1696,5 +1767,220 @@ function  wombat_basic_clear_page_cache($name) {
 function wombat_basic_get_page_cache($name) {
   $cache = ctools_object_cache_get('wombat_basic', $name);
   return $cache;
+}
+
+function onlinerecord_choose_callback3($choosed_date, $choose_service_id)
+{
+  $ch_t=strtotime($choosed_date);
+
+  $result=db_query('SELECT p.plan_id, p.name AS planname, p.kvant_value, p.worktimestart, p.worktimefinish,
+    d.name AS deptname, o.name AS orgname, p.enabled_date, p.disabled_date
+    FROM {onlinerecord_plans_services} ps, {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
+    WHERE ps.plan_id=p.plan_id
+    AND p.dept_id=d.dept_id AND d.org_id=o.org_id
+    AND ps.service_id=%d
+    AND p.enabled_date<=%d AND %d<=p.disabled_date',$choose_service_id,$ch_t,$ch_t);
+  if ($choosed_date!="")
+    $chd=date('N',strtotime($choosed_date));
+
+  $dateformat='Y-m-d';
+
+  $i=0;
+  $tableData =array();
+  $tableHeader= array('pid', 'header_table','wts','wtf','kv','edate','ddate',
+    'kvant_number', 'time', 'time_cmp','except_id', 'type','actions');
+  $pids=array();
+
+  while ($pid = db_fetch_object($result))
+    {
+        $arg=$pid->plan_id;
+        //$header_table=$pid->planname." at ".$pid->deptname.", ".$pid->orgname;
+        $header_table=t('@deptname , @orgname',
+          array(
+            '@deptname'  => $pid->deptname,
+            '@orgname'  =>$pid->orgname)
+        );
+        $wts=$pid->worktimestart;
+        $wtf=$pid->worktimefinish;
+        $kvant_value=$pid->kvant_value;
+        $edate=$pid->enabled_date;
+        $ddate=$pid->disbled_date;
+        {
+        // Get all exceptions from choosen plan
+          $result2=db_query("SELECT e.except_id, e.type, e.time_start, e.time_stop, e.daynumber, e.dateofexcept
+            FROM {onlinerecord_exceptions} e
+            WHERE e.plan_id in ('%s')
+            ORDER BY plan_id",$arg);
+          $j=0;
+          $excepts=array();
+          //exceptions to array
+          while ($except = db_fetch_object($result2))
+          {
+            $excepts[$j++]=$except;
+          }
+          $exceptscount=$j;
+
+          $result3=db_query("SELECT plan_id, kvant
+            FROM {onlinerecord_records}
+            WHERE plan_id in ('%s')
+            AND recorddate=%d
+            ORDER BY plan_id",$arg,$ch_t);
+          $j=0;
+          $records=array();
+          //exceptions to array
+
+          while ($record = db_fetch_object($result3))
+          {
+              $records[intval($record->kvant)]=true;
+          }
+          $n=($wtf-$wts)/($kvant_value*60);
+
+          for ($k=0;$k<$n;$k++)
+          {
+            $temp=$wts+$k*$kvant_value*60;
+            $flag=true;
+            //check exceptions for current time
+            $excepts_ids="";
+            $excepts_types="";
+            for ($j=0;$j<$exceptscount;$j++)
+            {
+              //get excepts date
+              $tstart=intval($excepts[$j]->time_start);
+              $tstop=intval($excepts[$j]->time_stop);
+              $dn=intval($excepts[$j]->daynumber);
+              $dateofe=intval($excepts[$j]->dateofexcept);
+
+              //type of exceptions processing
+              switch (intval($excepts[$j]->type)) {
+                case 1:
+                  // try beetwen exception time
+                  if (($tstart<=$temp)&&($temp<=$tstop))
+                  {
+                    $flag=false;
+                    $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
+                    $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
+                  }
+                  break;
+                case 2:
+                  if (($tstart<=$temp)&&($temp<=$tstop)&&($chd==$dn))
+                  {
+                    $flag=false;
+                    $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
+                    $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
+                  }
+                  break;
+                case 5:
+                  if (($tstart<=$temp)&&($temp<=$tstop)&&(strtotime($choosed_date)==$dateofe))
+                  {
+                    $flag=false;
+                    $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
+                    $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
+                  }
+                  break;
+              }
+            }
+            $valuetoseeTD=0;
+            if ($flag)
+            {
+                $valuetoseeTD=((!$records[$temp]) ? 1 :0);
+            } else $valuetoseeTD=-1;
+            //InputData
+            $tableData[] = array(
+              $arg,//plan_id
+              $header_table,//dept org
+              $wts,//work_time_start
+              $wtf,//work_time_finish
+              $kvant_value,
+              $edate,//enabled date
+              $ddate,//disabled date
+
+              $k,// Kvant number
+              strval((int)($temp/3600)).":".str_pad(strval((int)(($temp%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
+              $temp,//time in seconds
+              $excepts_ids,
+              $excepts_types,
+              (($flag)&&(!$records[$temp])) ? 1 :0,//time in seconds
+              $valuetoseeTD,
+            );
+          }
+        }
+    }
+    //dpm(array_search(0, array(-1,-1,-1)));
+    usort($tableData,'onlinerecord_func_timecompare');
+    $display_array=array();
+    $flag=true;
+    $counter=0;
+    $counter2=0;
+    $temp_time=-1;
+    $i=0;
+    //Sortirovka dannih
+    $valuestosee_array=array();
+    foreach ($tableData as $arr_str)
+    {
+        $i++;
+        if ($arr_str[9]!=$temp_time) {
+            $flag=false;
+
+        }
+        if ($flag)  {
+            if ($arr_str[12]==1)    {
+                $plans_ids_array[$counter]=$arr_str[0];
+                $header_tables_array[$counter]=$arr_str[1];
+                $counter++;
+            }
+            else $valuestosee_array[$counter2++]=$arr_str[13];
+        } else {
+            if ($temp_time!=-1)
+                {
+                $valtosave=0;
+                if (!empty($plans_ids_array))
+                    $valtosave=1;
+                else {
+                    if (array_search(0, $valuestosee_array)!=true) $valtosave=-1;
+                    else $valtosave=0;
+                }
+
+                    $display_array[]=array(
+                      $plans_ids_array,//plan_id
+                      $header_tables_array,//dept org
+                      strval((int)($temp_time/3600)).":".str_pad(strval((int)(($temp_time%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
+                      $temp_time,//time in seconds
+                      $arr_str[7],//@TODO @BUG: different quants possible
+                      $valtosave,
+                      );
+                }
+            $flag=true;
+            $counter=0;
+
+            $plans_ids_array=array();//plan_id
+            $header_tables_array=array();//plan display name
+            $valuestosee_array=array();//
+
+            $temp_time=$arr_str[9];
+            if ($arr_str[12]==1)    {
+              $plans_ids_array[$counter]=$arr_str[0];
+              $header_tables_array[$counter]=$arr_str[1];
+              $counter++;
+            }
+            else $valuestosee_array[$counter2++]=$arr_str[13];
+        }
+    }
+    $valtosave=0;
+    if (!empty($plans_ids_array))
+        $valtosave=1;
+    else {
+        if (array_search(0, $valuestosee_array)!=true) $valtosave=-1;
+        else $valtosave=0;
+    }
+
+    $display_array[]=array(
+              $plans_ids_array,//plan_id
+              $header_tables_array,//dept org
+              strval((int)($temp_time/3600)).":".str_pad(strval((int)(($temp_time%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
+              $temp_time,//time in seconds
+              $arr_str[7]+1,//@TODO @BUG: different quants possible
+              $valtosave,
+              );
+    return $display_array;
 }
 ?>
