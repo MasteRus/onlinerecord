@@ -365,7 +365,7 @@ function onlinerecord_menu()
       'type' => MENU_NORMAL_ITEM,
       //'file' => 'onlinerecord.admin.inc',
     );
-    $items['onlinerecord1'] = array(
+    $items['onlinerecord/view'] = array(
       'title' => 'View plan records by user',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_records_by_user_view',4),
@@ -373,13 +373,13 @@ function onlinerecord_menu()
       'type' => MENU_LOCAL_TASK,
       //'file' => 'onlinerecord.admin.inc',
     );
-    $items['onlinerecord1/callback1'] = array(
+    $items['onlinerecord/view/callback1'] = array(
       'page callback' => 'onlinerecord_records_by_user_view_callback1',
       'access callback' => TRUE,
       //'file' => 'onlinerecord.admin.inc',
       'type' => MENU_CALLBACK,
     );
-    $items['onlinerecord1/callback2'] = array(
+    $items['onlinerecord/view/callback2'] = array(
       'page callback' => 'onlinerecord_records_by_user_view_callback2',
       'access callback' => TRUE,
       //'file' => 'onlinerecord.admin.inc',
@@ -446,10 +446,14 @@ function onlinerecord_choose($form_state)
   } else {
     if (isset($form_state['storage']['page_two'])) {
         global $user;
-        //dpm($user);
+        //dpm($user);m
         $uid=$user->uid;
 
-        $vals=onlinerecord_choose_callback2();
+        $choosed_date=$form_state['storage']['page_one_values']['choose_date'];
+        $choose_service_id=$form_state['storage']['page_one_values']['choose_service_id'];
+        $vals=onlinerecord_choose_callback3($choosed_date, $choose_service_id);
+
+        //$vals=onlinerecord_choose_callback2();
         $form=array();
         //Add header for table_theme
         $form['header'] = array(
@@ -518,7 +522,7 @@ function onlinerecord_choose($form_state)
 
         $form['choose_date'] = array(
           '#title' => t('Enabled on'),
-          '#type' => 'date_popup',
+          '#type' => 'date_select',
           '#default_value' => $datef,
           '#date_format' => $dateformat,
           '#datepicker_options' => array('minDate' => 0,'maxDate' => '+28D'),
@@ -643,226 +647,6 @@ function onlinerecord_choose_submit($form, &$form_state)
   }
 }
 
-function onlinerecord_choose_callback2()
-{
-  $choosed_date='---';
-  if (isset($_POST['choose_date']))
-    $choosed_date=check_plain($_POST['choose_date']['year']).'-'.$_POST['choose_date']['month'].'-'.$_POST['choose_date']['day'];
-  if (isset($_POST['choose_service_id']))
-    $choose_service_id=intval($_POST['choose_service_id']);
-  $ch_t=strtotime($choosed_date);
-
-  $result=db_query('SELECT p.plan_id, p.name AS planname, p.kvant_value, p.worktimestart, p.worktimefinish,
-    d.name AS deptname, o.name AS orgname, p.enabled_date, p.disabled_date
-    FROM {onlinerecord_plans_services} ps, {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
-    WHERE ps.plan_id=p.plan_id
-    AND p.dept_id=d.dept_id AND d.org_id=o.org_id
-    AND ps.service_id=%d
-    AND p.enabled_date<=%d AND %d<=p.disabled_date',$choose_service_id,$ch_t,$ch_t);
-  if ($choosed_date!="")
-    $chd=date('N',strtotime($choosed_date));
-
-  $dateformat='Y-m-d';
-
-  $i=0;
-  $tableData =array();
-  $tableHeader= array('pid', 'header_table','wts','wtf','kv','edate','ddate',
-    'kvant_number', 'time', 'time_cmp','except_id', 'type','actions');
-  $pids=array();
-
-  while ($pid = db_fetch_object($result))
-    {
-        $arg=$pid->plan_id;
-        //$header_table=$pid->planname." at ".$pid->deptname.", ".$pid->orgname;
-        $header_table=t('@deptname , @orgname',
-          array(
-            '@deptname'  => $pid->deptname,
-            '@orgname'  =>$pid->orgname)
-        );
-        $wts=$pid->worktimestart;
-        $wtf=$pid->worktimefinish;
-        $kvant_value=$pid->kvant_value;
-        $edate=$pid->enabled_date;
-        $ddate=$pid->disbled_date;
-        {
-        // Get all exceptions from choosen plan
-          $result2=db_query("SELECT e.except_id, e.type, e.time_start, e.time_stop, e.daynumber, e.dateofexcept
-            FROM {onlinerecord_exceptions} e
-            WHERE e.plan_id in ('%s')
-            ORDER BY plan_id",$arg);
-          $j=0;
-          $excepts=array();
-          //exceptions to array
-          while ($except = db_fetch_object($result2))
-          {
-            $excepts[$j++]=$except;
-          }
-          $exceptscount=$j;
-
-          $result3=db_query("SELECT plan_id, kvant
-            FROM {onlinerecord_records}
-            WHERE plan_id in ('%s')
-            AND recorddate=%d
-            ORDER BY plan_id",$arg,$ch_t);
-          $j=0;
-          $records=array();
-          //exceptions to array
-
-          while ($record = db_fetch_object($result3))
-          {
-              $records[intval($record->kvant)]=true;
-          }
-          $n=($wtf-$wts)/($kvant_value*60);
-
-          for ($k=0;$k<$n;$k++)
-          {
-            $temp=$wts+$k*$kvant_value*60;
-            $flag=true;
-            //check exceptions for current time
-            $excepts_ids="";
-            $excepts_types="";
-            for ($j=0;$j<$exceptscount;$j++)
-            {
-              //get excepts date
-              $tstart=intval($excepts[$j]->time_start);
-              $tstop=intval($excepts[$j]->time_stop);
-              $dn=intval($excepts[$j]->daynumber);
-              $dateofe=intval($excepts[$j]->dateofexcept);
-
-              //type of exceptions processing
-              switch (intval($excepts[$j]->type)) {
-                case 1:
-                  // try beetwen exception time
-                  if (($tstart<=$temp)&&($temp<=$tstop))
-                  {
-                    $flag=false;
-                    $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
-                    $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
-                  }
-                  break;
-                case 2:
-                  if (($tstart<=$temp)&&($temp<=$tstop)&&($chd==$dn))
-                  {
-                    $flag=false;
-                    $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
-                    $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
-                  }
-                  break;
-                case 5:
-                  if (($tstart<=$temp)&&($temp<=$tstop)&&(strtotime($choosed_date)==$dateofe))
-                  {
-                    $flag=false;
-                    $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
-                    $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
-                  }
-                  break;
-              }
-            }
-            $valuetoseeTD=0;
-            if ($flag)
-            {
-                $valuetoseeTD=((!$records[$temp]) ? 1 :0);
-            } else $valuetoseeTD=-1;
-            //InputData
-            $tableData[] = array(
-              $arg,//plan_id
-              $header_table,//dept org
-              $wts,//work_time_start
-              $wtf,//work_time_finish
-              $kvant_value,
-              $edate,//enabled date
-              $ddate,//disabled date
-
-              $k,// Kvant number
-              strval((int)($temp/3600)).":".str_pad(strval((int)(($temp%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
-              $temp,//time in seconds
-              $excepts_ids,
-              $excepts_types,
-              (($flag)&&(!$records[$temp])) ? 1 :0,//time in seconds
-              $valuetoseeTD,
-            );
-          }
-        }
-    }
-    //dpm(array_search(0, array(-1,-1,-1)));
-    usort($tableData,'onlinerecord_func_timecompare');
-    $display_array=array();
-    $flag=true;
-    $counter=0;
-    $counter2=0;
-    $temp_time=-1;
-    $i=0;
-    //Sortirovka dannih
-    $valuestosee_array=array();
-    foreach ($tableData as $arr_str)
-    {
-        $i++;
-        if ($arr_str[9]!=$temp_time) {
-            $flag=false;
-
-        }
-        if ($flag)  {
-            if ($arr_str[12]==1)    {
-                $plans_ids_array[$counter]=$arr_str[0];
-                $header_tables_array[$counter]=$arr_str[1];
-                $counter++;
-            }
-            else $valuestosee_array[$counter2++]=$arr_str[13];
-        } else {
-            if ($temp_time!=-1)
-                {
-                $valtosave=0;
-                if (!empty($plans_ids_array))
-                    $valtosave=1;
-                else {
-                    if (array_search(0, $valuestosee_array)!=true) $valtosave=-1;
-                    else $valtosave=0;
-                }
-
-                    $display_array[]=array(
-                      $plans_ids_array,//plan_id
-                      $header_tables_array,//dept org
-                      strval((int)($temp_time/3600)).":".str_pad(strval((int)(($temp_time%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
-                      $temp_time,//time in seconds
-                      $arr_str[7],//@TODO @BUG: different quants possible
-                      $valtosave,
-                      );
-                }
-            $flag=true;
-            $counter=0;
-
-            $plans_ids_array=array();//plan_id
-            $header_tables_array=array();//plan display name
-            $valuestosee_array=array();//
-
-            $temp_time=$arr_str[9];
-            if ($arr_str[12]==1)    {
-              $plans_ids_array[$counter]=$arr_str[0];
-              $header_tables_array[$counter]=$arr_str[1];
-              $counter++;
-            }
-            else $valuestosee_array[$counter2++]=$arr_str[13];
-        }
-    }
-    $valtosave=0;
-    if (!empty($plans_ids_array))
-        $valtosave=1;
-    else {
-        if (array_search(0, $valuestosee_array)!=true) $valtosave=-1;
-        else $valtosave=0;
-    }
-
-    $display_array[]=array(
-              $plans_ids_array,//plan_id
-              $header_tables_array,//dept org
-              strval((int)($temp_time/3600)).":".str_pad(strval((int)(($temp_time%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
-              $temp_time,//time in seconds
-              $arr_str[7]+1,//@TODO @BUG: different quants possible
-              $valtosave,
-              );
-    return $display_array;
-}
-
 function onlinerecord_func_timecompare($val1,$val2)
 {
   if ($val1[9]==$val2[9]) return 0;
@@ -948,7 +732,7 @@ function onlinerecord_records_by_user_view(&$form_state)
     '#type' => 'submit',
     '#value' => t('Load'),
     '#ahah' => array(
-        'path' => 'onlinerecord1/callback1',
+        'path' => 'onlinerecord/view/callback1',
         'wrapper' => 'dependent_dropdown_holder',
       ),
   );
@@ -1251,7 +1035,7 @@ function onlinerecord_step2_form(&$form, &$form_state) {
 
   $dateformat='Y-m-d';
   $datef1=strtotime(date($dateformat, (time()+86400)));
-  $datef2=strtotime(date($dateformat, (time()+28*86400)));
+  $datef2=strtotime(date($dateformat, (time()+29*86400)));
 
   $result=db_query('SELECT p.plan_id, p.name AS planname, p.kvant_value, p.worktimestart, p.worktimefinish,
     d.name AS deptname, o.name AS orgname, p.enabled_date, p.disabled_date
@@ -1260,7 +1044,7 @@ function onlinerecord_step2_form(&$form, &$form_state) {
     AND p.dept_id=d.dept_id AND d.org_id=o.org_id
     AND ps.service_id=%d
     AND p.enabled_date<=%d AND %d<=p.disabled_date',
-    intval($onlinerecord_form->choose_service_id),$datef1,$datef1);//@TODO @BUG Intersect of lines
+    intval($onlinerecord_form->choose_service_id),$datef2,$datef1);
     
   if ($choosed_date!="")
     $chd=date('N',strtotime($choosed_date));
@@ -1270,6 +1054,7 @@ function onlinerecord_step2_form(&$form, &$form_state) {
   $i=0;
   while ($pid = db_fetch_object($result))
   {
+    //dpm ($pid);
       $arg=$pid->plan_id;
       $result2=db_query("SELECT e.except_id, e.type, e.time_start, e.time_stop, e.daynumber, e.dateofexcept
         FROM {onlinerecord_exceptions} e
@@ -1283,64 +1068,77 @@ function onlinerecord_step2_form(&$form, &$form_state) {
         $excepts[$j++]=$except;
       }
       $exceptscount=$j;
-      $plans[$i]=array($pid,$excepts);
+      $plans[$i++]=array($pid,$excepts);
+      //$i++;
   }
 
   //$plans_count=count($plans);
   //while ($pid = db_fetch_object($result))
   $time1=microtime();
+  //dpm ($plans);
   
-  for ($i=$datef1;$i<=$datef1+(28*86400);$i=$i+86400)
+  for ($i=$datef1;$i<=$datef2;$i=$i+86400)
   {
+    // if flag=false then everything is
     $flag=false;
     //Try to use all plans
     foreach ($plans as $pid)
     {
+      //local flag if false then therer is free slots in this plan
       $flag=false;
       $plan_id=$pid[0]->plan_id;
       $wts=$pid[0]->worktimestart;
       $wtf=$pid[0]->worktimefinish;
       $kvant_value=$pid[0]->kvant_value;
       $edate=$pid[0]->enabled_date;
-      $ddate=$pid[0]->disbled_date;
+      $ddate=$pid[0]->disabled_date;
+      //dpm('id='.$plan_id.'... '.date($dateformat, $edate).', '.date($dateformat, $ddate).', i='.date($dateformat, $i) );
 
-      $excepts=$pid[1];
-      $times_array=range(0,($wtf-$wts)/($kvant_value*60)-1);
-      //Try to find number of free quants for day for current plan
-      foreach ($excepts as $except)
+      //Intersect of date segments of [$edate;$ddate] and []
+      if (($edate<=$i)&&($i<=$ddate))
       {
-        $temp=array();
-        switch (intval($except->type)) {
-          case 1://Everyday exception
-            $temp=range(($except->time_start-$wts)/($kvant_value*60),($except->time_stop-$wts)/($kvant_value*60));
-            $times_array=array_diff($times_array,$temp);
-            break;
-          case 2://everyweek exception
-            if (intval($except->daynumber)==date('N',$i)) {
-              $temp=range(($except->time_start-$wts)/($kvant_value*60),($except->time_stop-$wts)/($kvant_value*60));
-              $times_array=array_diff($times_array,$temp);
-            }
-            break;
-          case 5://custom date
-            if (intval($except->dateofexcept)==intval($i)) {
-              $temp=range(($except->time_start-$wts)/($kvant_value*60),($except->time_stop-$wts)/($kvant_value*60));
-              $times_array=array_diff($times_array,$temp);
-            }
-            // try beetwen exception time
-            break;
-      
-        }
-        //@TODO @DECISION Do we need to insert for empty array???
-        if (empty($times_array))
+        //dpm($i);
+        $excepts=$pid[1];
+        $times_array=range(0,($wtf-$wts)/($kvant_value*60)-1);
+        //Try to find number of free quants for day for current plan
+        foreach ($excepts as $except)
         {
-          $flag=true;
+          $temp=array();
+          switch (intval($except->type)) {
+            case 1://Everyday exception
+              $temp=range(($except->time_start-$wts)/($kvant_value*60),($except->time_stop-$wts)/($kvant_value*60));
+              $times_array=array_diff($times_array,$temp);
+              break;
+            case 2://everyweek exception
+              if (intval($except->daynumber)==date('N',$i)) {
+                $temp=range(($except->time_start-$wts)/($kvant_value*60),($except->time_stop-$wts)/($kvant_value*60));
+                $times_array=array_diff($times_array,$temp);
+              }
+              break;
+            case 5://custom date
+              if (intval($except->dateofexcept)==intval($i)) {
+                $temp=range(($except->time_start-$wts)/($kvant_value*60),($except->time_stop-$wts)/($kvant_value*60));
+                $times_array=array_diff($times_array,$temp);
+              }
+              // try beetwen exception time
+              break;
+
+          }
+          if (empty($times_array))
+          {
+            $flag=true;
+            break;
+          }
+        }
+        if ($flag) {
           break;
         }
-      }
-      if ($flag) {
+      } else {$flag=true;}
+      //
+      if ($flag!=true)
+      {
         break;
       }
-
     }
     if ($flag) {
       $restricted_dates['t'.$i]=date($dateformat,$i);
@@ -1535,7 +1333,7 @@ function onlinerecord_wizard_next(&$form_state) {
 function onlinerecord_wizard_cancel(&$form_state) {
   // Update the cache with changes.
   ctools_object_cache_clear('onlinerecord_form_cache', $form_state['cache name']);
-  $form_state['redirect'] = 'onlinerecord2';
+  $form_state['redirect'] = 'onlinerecord-wizard';
   drupal_set_message('Coward.');
 }
 
@@ -1553,6 +1351,235 @@ function onlinerecord_wizard_get_page_cache($name) {
 
 function onlinerecord_choose_callback3($choosed_date, $choose_service_id)
 {
+  $ch_t=strtotime($choosed_date);
+
+  $result=db_query('SELECT p.plan_id, p.name AS planname, p.kvant_value, p.worktimestart, p.worktimefinish,
+    d.name AS deptname, o.name AS orgname, p.enabled_date, p.disabled_date
+    FROM {onlinerecord_plans_services} ps, {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
+    WHERE ps.plan_id=p.plan_id
+    AND p.dept_id=d.dept_id AND d.org_id=o.org_id
+    AND ps.service_id=%d
+    AND p.enabled_date<=%d AND %d<=p.disabled_date',$choose_service_id,$ch_t,$ch_t);
+  if ($choosed_date!="")
+    $chd=date('N',strtotime($choosed_date));
+
+  $dateformat='Y-m-d';
+
+  $i=0;
+  $tableData =array();
+  $tableHeader= array('pid', 'header_table','wts','wtf','kv','edate','ddate',
+    'kvant_number', 'time', 'time_cmp','except_id', 'type','actions');
+  $pids=array();
+
+  while ($pid = db_fetch_object($result))
+    {
+        $arg=$pid->plan_id;
+        //$header_table=$pid->planname." at ".$pid->deptname.", ".$pid->orgname;
+        $header_table=t('@deptname , @orgname',
+          array(
+            '@deptname'  => $pid->deptname,
+            '@orgname'  =>$pid->orgname)
+        );
+        $wts=$pid->worktimestart;
+        $wtf=$pid->worktimefinish;
+        $kvant_value=$pid->kvant_value;
+        $edate=$pid->enabled_date;
+        $ddate=$pid->disbled_date;
+        {
+        // Get all exceptions from choosen plan
+          $result2=db_query("SELECT e.except_id, e.type, e.time_start, e.time_stop, e.daynumber, e.dateofexcept
+            FROM {onlinerecord_exceptions} e
+            WHERE e.plan_id in ('%s')
+            ORDER BY plan_id",$arg);
+          $j=0;
+          $excepts=array();
+          //exceptions to array
+          while ($except = db_fetch_object($result2))
+          {
+            $excepts[$j++]=$except;
+          }
+          $exceptscount=$j;
+
+          $result3=db_query("SELECT plan_id, kvant
+            FROM {onlinerecord_records}
+            WHERE plan_id in ('%s')
+            AND recorddate=%d
+            ORDER BY plan_id",$arg,$ch_t);
+          $j=0;
+          $records=array();
+          //exceptions to array
+
+          while ($record = db_fetch_object($result3))
+          {
+              $records[intval($record->kvant)]=true;
+          }
+          $n=($wtf-$wts)/($kvant_value*60);
+
+          for ($k=0;$k<$n;$k++)
+          {
+            $temp=$wts+$k*$kvant_value*60;
+            $flag=true;
+            //check exceptions for current time
+            $excepts_ids="";
+            $excepts_types="";
+            for ($j=0;$j<$exceptscount;$j++)
+            {
+              //get excepts date
+              $tstart=intval($excepts[$j]->time_start);
+              $tstop=intval($excepts[$j]->time_stop);
+              $dn=intval($excepts[$j]->daynumber);
+              $dateofe=intval($excepts[$j]->dateofexcept);
+
+              //type of exceptions processing
+              switch (intval($excepts[$j]->type)) {
+                case 1:
+                  // try beetwen exception time
+                  if (($tstart<=$temp)&&($temp<=$tstop))
+                  {
+                    $flag=false;
+                    $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
+                    $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
+                  }
+                  break;
+                case 2:
+                  if (($tstart<=$temp)&&($temp<=$tstop)&&($chd==$dn))
+                  {
+                    $flag=false;
+                    $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
+                    $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
+                  }
+                  break;
+                case 5:
+                  if (($tstart<=$temp)&&($temp<=$tstop)&&(strtotime($choosed_date)==$dateofe))
+                  {
+                    $flag=false;
+                    $excepts_ids=$excepts_ids." ". l($excepts[$j]->except_id,'admin/settings/onlinerecord/exceptions/'.$excepts[$j]->except_id.'/edit/');
+                    $excepts_types=$excepts_types." ". $excepts[$j]->type.',';
+                  }
+                  break;
+              }
+            }
+            $valuetoseeTD=0;
+            if ($flag)
+            {
+                $valuetoseeTD=((!$records[$temp]) ? 1 :0);
+            } else $valuetoseeTD=-1;
+            //InputData
+            $tableData[] = array(
+              $arg,//plan_id - 0
+              $header_table,//dept org - 1
+              $wts,//work_time_start - 2
+              $wtf,//work_time_finish - 3
+              $kvant_value, // - 4
+              $edate,//enabled date - 5
+              $ddate,//disabled date - 6
+
+              $k,// Kvant number - 7
+              strval((int)($temp/3600)).":".str_pad(strval((int)(($temp%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm - 8
+              $temp,//time in seconds - 9
+              $excepts_ids, // - 10
+              $excepts_types,// - 11
+              (($flag)&&(!$records[$temp])) ? 1 :0,//time in seconds - 12
+              $valuetoseeTD,// - 13
+            );
+          }
+        }
+    }
+    //dpm(array_search(0, array(-1,-1,-1)));
+    usort($tableData,'onlinerecord_func_timecompare');
+    $display_array=array();
+    $flag=true;
+    $counter=0;
+    $counter2=0;
+    $temp_time=-1;
+    $i=0;
+    //Sortirovka dannih
+    $valuestosee_array=array();
+    foreach ($tableData as $arr_str)
+    {
+        $i++;
+        if ($arr_str[9]!=$temp_time) {
+            $flag=false;
+
+        }
+        if ($flag)  {
+            if ($arr_str[12]==1)    {
+                $plans_ids_array[$counter]=$arr_str[0];
+                $header_tables_array[$counter]=$arr_str[1];
+                $counter++;
+            }
+            else $valuestosee_array[$counter2++]=$arr_str[13];
+        } else {
+            if ($temp_time!=-1)
+                {
+                $valtosave=0;
+                if (!empty($plans_ids_array))
+                    $valtosave=1;
+                else {
+                    if (array_search(0, $valuestosee_array)!=true) $valtosave=-1;
+                    else $valtosave=0;
+                }
+
+                    $display_array[]=array(
+                      $plans_ids_array,//plan_id
+                      $header_tables_array,//dept org
+                      strval((int)($temp_time/3600)).":".str_pad(strval((int)(($temp_time%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
+                      $temp_time,//time in seconds
+                      $arr_str[7],//@TODO @BUG: different quants possible
+                      $valtosave,
+                      );
+                }
+            $flag=true;
+            $counter=0;
+
+            $plans_ids_array=array();//plan_id
+            $header_tables_array=array();//plan display name
+            $valuestosee_array=array();//
+
+            $temp_time=$arr_str[9];
+            if ($arr_str[12]==1)    {
+              $plans_ids_array[$counter]=$arr_str[0];
+              $header_tables_array[$counter]=$arr_str[1];
+              $counter++;
+            }
+            else $valuestosee_array[$counter2++]=$arr_str[13];
+        }
+    }
+    $valtosave=0;
+    if (!empty($plans_ids_array))
+        $valtosave=1;
+    else {
+        if (array_search(0, $valuestosee_array)!=true) $valtosave=-1;
+        else $valtosave=0;
+    }
+
+    $display_array[]=array(
+              $plans_ids_array,//plan_id
+              $header_tables_array,//dept org
+              strval((int)($temp_time/3600)).":".str_pad(strval((int)(($temp_time%3600)/60)),2,'0',STR_PAD_LEFT),     //time in format hh:mm
+              $temp_time,//time in seconds
+              $arr_str[7]+1,//@TODO @BUG: different quants possible
+              $valtosave,
+              );
+    dpm ($display_array);
+    return $display_array;
+}
+
+//======
+//Depricated and old methods
+function onlinerecordtest_callback1()
+{
+  drupal_json(array('status' => TRUE, 'data' => 'test'));
+}
+
+
+function onlinerecord_choose_callback2()
+{
+  $choosed_date='---';
+  if (isset($_POST['choose_date']))
+    $choosed_date=check_plain($_POST['choose_date']['year']).'-'.$_POST['choose_date']['month'].'-'.$_POST['choose_date']['day'];
+  if (isset($_POST['choose_service_id']))
+    $choose_service_id=intval($_POST['choose_service_id']);
   $ch_t=strtotime($choosed_date);
 
   $result=db_query('SELECT p.plan_id, p.name AS planname, p.kvant_value, p.worktimestart, p.worktimefinish,
@@ -1764,11 +1791,5 @@ function onlinerecord_choose_callback3($choosed_date, $choose_service_id)
               $valtosave,
               );
     return $display_array;
-}
-
-
-function onlinerecordtest_callback1()
-{
-  drupal_json(array('status' => TRUE, 'data' => 'test'));
 }
 ?>
