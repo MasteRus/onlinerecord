@@ -928,14 +928,14 @@ function onlinerecord_wizard()
     'show back' => TRUE,
     'show cancel' => true,
     'show return' =>false,
-    'next text' => 'Proceed to next step',
+    //'next text' => t('Next'),
     'next callback' =>  'onlinerecord_wizard_next',
     'finish callback' => 'onlinerecord_wizard_submit',
     'return callback' => 'onlinerecord_wizard_submit',
     'cancel callback' => 'onlinerecord_wizard_cancel',
     'order' => array(
       'step1' => t('Step 1: Service'),
-      'step2' => t('Step 2: Datepicker'),
+      'step2' => t('Step 2: Date'),
       'step3' => t('Step 3: Time'),
       'step4' => t('Step 4: Name'),
     ),
@@ -1317,7 +1317,7 @@ function onlinerecord_wizard_cancel(&$form_state) {
   // Update the cache with changes.
   ctools_object_cache_clear('onlinerecord_form_cache', $form_state['cache name']);
   $form_state['redirect'] = 'onlinerecord-wizard';
-  drupal_set_message('Coward.');
+  drupal_set_message(t('Canceled'));
 }
 
 function  onlinerecord_wizard_clear_page_cache($name) {

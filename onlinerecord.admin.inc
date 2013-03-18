@@ -560,7 +560,6 @@ function onlinerecord_plans_form_delete_confirm_submit($form, &$form_state)
 
 function onlinerecord_plans_list()
 {
-    //@TODO - New field DisplayName or innerjoin?
     $result=db_query('SELECT p.plan_id, p.name AS planname, p.kvant_value, p.worktimestart, p.worktimefinish,
     d.name AS deptname, o.name AS orgname  FROM {onlinerecord_plans} p, {onlinerecord_organizations} o, {onlinerecord_departments} d
     WHERE p.dept_id=d.dept_id AND d.org_id=o.org_id');
