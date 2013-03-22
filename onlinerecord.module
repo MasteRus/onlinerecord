@@ -1213,6 +1213,8 @@ function onlinerecord_step3_form(&$form, &$form_state) {
     }
     $i++;
   }
+  $form['buttons']['next']['#disabled']=TRUE;
+  //dpm($form);
 }
 function onlinerecord_step3_form_submit(&$from, &$form_state) {
   $num=explode('_',$form_state['clicked_button']['#name']);
