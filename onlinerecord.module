@@ -515,7 +515,7 @@ function onlinerecord_choose($form_state)
         $datef=date($dateformat, (time()+86400));
 
         $form['choose_date'] = array(
-          '#title' => t('Enabled on'),
+          '#title' => t('Choose date'),
           '#type' => 'date_select',
           '#default_value' => $datef,
           '#date_format' => $dateformat,
@@ -712,7 +712,7 @@ function onlinerecord_records_by_user_view(&$form_state)
   //dpm($default_choose_date);
 
   $form['choose_date'] = array(
-      '#title' => t('Enabled on'),
+      '#title' => t('Choose date'),
       '#type' => 'date_select',
       '#default_value' => $default_choose_date,
       '#date_format' => $dateformat,
@@ -923,7 +923,7 @@ function onlinerecord_wizard()
 
   $form_info = array(
     'id' => 'onlinerecord_form_cache',
-    'path' => "onlinerecord-wizard/%step",
+    'path' => "onlinerecord/%step",
     'show trail' => TRUE,
     'show back' => TRUE,
     'show cancel' => true,
@@ -1137,7 +1137,7 @@ function onlinerecord_step2_form(&$form, &$form_state) {
 
   $default_date = !empty($onlinerecord_form->choose_date) ? $onlinerecord_form->choose_date : '';
   $form['choose_date'] = array(
-    '#title' => t('Enabled on'),
+    '#title' => t('Choose date'),
     '#type' => 'date_popup',
     '#default_value' => $default_date,
     '#date_format' => $dateformat,
@@ -1318,7 +1318,7 @@ function onlinerecord_wizard_next(&$form_state) {
 function onlinerecord_wizard_cancel(&$form_state) {
   // Update the cache with changes.
   ctools_object_cache_clear('onlinerecord_form_cache', $form_state['cache name']);
-  $form_state['redirect'] = 'onlinerecord-wizard';
+  $form_state['redirect'] = 'onlinerecord';
   drupal_set_message(t('Canceled'));
 }
 

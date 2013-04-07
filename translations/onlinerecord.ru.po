@@ -11,8 +11,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
-"POT-Creation-Date: 2013-01-15 13:30+0600\n"
-"PO-Revision-Date: 2013-01-15 13:30+0600\n"
+"POT-Creation-Date: 2013-04-07 17:22+0700\n"
+"PO-Revision-Date: 2013-04-07 17:22+0700\n"
 "Last-Translator: NAME <EMAIL@ADDRESS>\n"
 "Language-Team: Russian <EMAIL@ADDRESS>\n"
 "MIME-Version: 1.0\n"
@@ -24,11 +24,11 @@ msgstr ""
 msgid "Insert Organization name"
 msgstr ""
 
-#: onlinerecord.admin.inc:19;152;209;362;686;1080;1519;1569;1698
+#: onlinerecord.admin.inc:19;152;209;362;685;1079;1518;1568;1697;1823
 msgid "Add"
 msgstr "Добавить"
 
-#: onlinerecord.admin.inc:52;1274 onlinerecord.module:378
+#: onlinerecord.admin.inc:52;1273 onlinerecord.module:435
 msgid "Save"
 msgstr "Сохранить"
 
@@ -40,35 +40,35 @@ msgstr ""
 msgid "Insert Department name"
 msgstr ""
 
-#: onlinerecord.admin.inc:144;201;308;322;424;439;632;646
+#: onlinerecord.admin.inc:144;201;308;322;424;439;631;645
 msgid "Select your place"
 msgstr ""
 
-#: onlinerecord.admin.inc:229;1591
+#: onlinerecord.admin.inc:229;1590
 msgid "Are you sure want to delete department?"
 msgstr ""
 
-#: onlinerecord.admin.inc:315;431;639
+#: onlinerecord.admin.inc:315;431;638
 msgid "Insert Plan name"
 msgstr ""
 
-#: onlinerecord.admin.inc:329;446;653
+#: onlinerecord.admin.inc:329;446;652
 msgid "Start time"
 msgstr ""
 
-#: onlinerecord.admin.inc:335;452;659
+#: onlinerecord.admin.inc:335;452;658
 msgid "Finish time"
 msgstr ""
 
-#: onlinerecord.admin.inc:341;461;665;805
+#: onlinerecord.admin.inc:341;461;664;804
 msgid "Enabled on"
 msgstr ""
 
-#: onlinerecord.admin.inc:351;471;675
+#: onlinerecord.admin.inc:351;471;674
 msgid "Disabled on"
 msgstr ""
 
-#: onlinerecord.admin.inc:374;495;698
+#: onlinerecord.admin.inc:374;495;697
 msgid "Disabled date should be after Enabled date"
 msgstr ""
 
@@ -80,100 +80,196 @@ msgstr "Редактировать"
 msgid "Are you sure want to delete plan?"
 msgstr ""
 
-#: onlinerecord.admin.inc:817
+#: onlinerecord.admin.inc:816 onlinerecord.module:727
 msgid "Load"
 msgstr ""
 
-#: onlinerecord.admin.inc:906
+#: onlinerecord.admin.inc:905 onlinerecord.module:768;894
 msgid "Time"
 msgstr "Время"
 
-#: onlinerecord.admin.inc:906
+#: onlinerecord.admin.inc:905 onlinerecord.module:768;894
 msgid "Record"
 msgstr ""
 
-#: onlinerecord.admin.inc:906
+#: onlinerecord.admin.inc:905 onlinerecord.module:768;894
 msgid "Service"
 msgstr "Сервис"
 
-#: onlinerecord.admin.inc:906
+#: onlinerecord.admin.inc:905 onlinerecord.module:768
 msgid "type"
 msgstr "тип"
 
-#: onlinerecord.admin.inc:958 onlinerecord.module:395
+#: onlinerecord.admin.inc:957 onlinerecord.module:460;870;1179
 msgid "-"
 msgstr ""
 
-#: onlinerecord.admin.inc:961
+#: onlinerecord.admin.inc:960 onlinerecord.module:873
 msgid "Free"
 msgstr ""
 
-#: onlinerecord.admin.inc:1022;1211;1690
+#: onlinerecord.admin.inc:1021;1210;1689
 msgid "Type of exception"
 msgstr ""
 
-#: onlinerecord.admin.inc:1041;1234
+#: onlinerecord.admin.inc:1040;1233
 msgid "Start quant"
 msgstr ""
 
-#: onlinerecord.admin.inc:1048;1241
+#: onlinerecord.admin.inc:1047;1240
 msgid "Finish quant"
 msgstr ""
 
-#: onlinerecord.admin.inc:1056;1249
+#: onlinerecord.admin.inc:1055;1248
 msgid "Daynumber"
 msgstr ""
 
-#: onlinerecord.admin.inc:1069;1263
+#: onlinerecord.admin.inc:1068;1262
 msgid "Date of Exception"
 msgstr ""
 
-#: onlinerecord.admin.inc:1100;1294
+#: onlinerecord.admin.inc:1099;1293
 msgid "kvant_start > kvant_finish"
 msgstr ""
 
-#: onlinerecord.admin.inc:1104
+#: onlinerecord.admin.inc:1103
 msgid "Daynumber must be setted correctly"
 msgstr ""
 
-#: onlinerecord.admin.inc:1109
+#: onlinerecord.admin.inc:1108
 msgid "Date must be setted correctly"
 msgstr ""
 
-#: onlinerecord.admin.inc:1298
+#: onlinerecord.admin.inc:1297
 msgid "Daynumber must be setted correctly/"
 msgstr ""
 
-#: onlinerecord.admin.inc:1303
+#: onlinerecord.admin.inc:1302
 msgid "Date Of Exception must be setted correctly/"
 msgstr ""
 
-#: onlinerecord.admin.inc:1376
+#: onlinerecord.admin.inc:1375
 msgid "Are you sure want to delete exception?"
 msgstr ""
 
-#: onlinerecord.admin.inc:1501
+#: onlinerecord.admin.inc:1500
 msgid "Insert service name"
 msgstr ""
 
-#: onlinerecord.admin.inc:1507
+#: onlinerecord.admin.inc:1506
 msgid "Insert cabinet"
 msgstr ""
 
-#: onlinerecord.admin.inc:1512;1557
+#: onlinerecord.admin.inc:1511;1556
 msgid "Insert redirect URL"
 msgstr ""
 
-#: onlinerecord.admin.inc:1547;1552
+#: onlinerecord.admin.inc:1546;1551
 msgid "Insert Service name"
 msgstr ""
 
-#: onlinerecord.admin.inc:1683
+#: onlinerecord.admin.inc:1682;1815
 msgid "Plans"
 msgstr ""
 
-#: onlinerecord.admin.inc:1714
+#: onlinerecord.admin.inc:1713
 msgid "Are you sure want to delete plan-service connection?"
+msgstr ""
+
+#: onlinerecord.admin.inc:1808
+msgid "user"
+msgstr "пользователь"
+
+#: onlinerecord.admin.inc:1838
+msgid "Are you sure want to delete user-plan connection?"
+msgstr ""
+
+#: onlinerecord.module:116
+msgid "OnlineRecord Plans"
+msgstr ""
+
+#: onlinerecord.module:420;1232
+msgid "FIO"
+msgstr "ФИО"
+
+#: onlinerecord.module:459;768;1178
+msgid "time"
+msgstr "Время"
+
+#: onlinerecord.module:484;1204
+msgid "Make an appointment"
+msgstr "Записаться на прием"
+
+#: onlinerecord.module:509;991
+msgid "Select service"
+msgstr "Выберите услугу"
+
+#: onlinerecord.module:518;715;1140
+msgid "Choose date"
+msgstr "Выберите дату для записи"
+
+#: onlinerecord.module:528
+msgid "Next >>"
+msgstr "Далее"
+
+#: onlinerecord.module:545;1257
+msgid "Please enter your FIO."
+msgstr "Пожалуйста, введите своё ФИО"
+
+#: onlinerecord.module:559;1002
+msgid "Please choose service."
+msgstr "Пожалуйста, выберите услугу"
+
+#: onlinerecord.module:566;1156
+msgid "Please select date correctly. You can choose only !datef or later"
+msgstr ""
+"Укажите корректную дату. Вы можете "
+"выбрать !datef или более позднее число"
+
+#: onlinerecord.module:629;1295
+msgid "You've been saved on time @time. @planh, your number is @num"
+msgstr ""
+"Вы записаны на @time, @planh. ОБЯЗАТЕЛЬНО "
+"запомните ваш номер: @num"
+
+#: onlinerecord.module:777
+msgid "@planname - @deptname , @orgname"
+msgstr ""
+
+#: onlinerecord.module:894
+msgid "Plan name"
+msgstr ""
+
+#: onlinerecord.module:937
+msgid "Step 1: Service"
+msgstr "Этап 1: Выберите услугу"
+
+#: onlinerecord.module:938
+msgid "Step 2: Date"
+msgstr "Этап 2: Выберите дату"
+
+#: onlinerecord.module:939
+msgid "Step 3: Time"
+msgstr "Этап 3: Выберите время"
+
+#: onlinerecord.module:940
+msgid "Step 4: Name"
+msgstr "Этап 4: Введите ваше ФИО"
+
+#: onlinerecord.module:1322
+msgid "Canceled"
+msgstr "Отменено"
+
+#: onlinerecord.module:1363
+msgid "@deptname , @orgname"
+msgstr "@deptname , @orgname"
+
+#: onlinerecord.module:5
+msgid "administer onlinerecord"
+msgstr "Управлять электронной очередью"
+
+#: onlinerecord.module:5
+msgid "access onlinerecord"
 msgstr ""
 
 #: onlinerecord.module:17
@@ -210,10 +306,6 @@ msgstr ""
 
 #: onlinerecord.module:103
 msgid "Delete department"
-msgstr ""
-
-#: onlinerecord.module:116
-msgid "OnlineRecord Plans"
 msgstr ""
 
 #: onlinerecord.module:127
@@ -260,72 +352,32 @@ msgstr ""
 msgid "Delete service"
 msgstr ""
 
-#: onlinerecord.module:294
-msgid "View plan"
+#: onlinerecord.module:295
+msgid "OnlineRecord Users - Plans"
+msgstr ""
+
+#: onlinerecord.module:306
+msgid "Add users-plans"
 msgstr ""
 
 #: onlinerecord.module:316
+msgid "Delete users-plans"
+msgstr ""
+
+#: onlinerecord.module:327
+msgid "View plan"
+msgstr ""
+
+#: onlinerecord.module:349
 msgid "Clone plan"
 msgstr ""
 
-#: onlinerecord.module:328
+#: onlinerecord.module:361;384
 msgid "Onlinerecord"
 msgstr "Запись за приём"
 
-#: onlinerecord.module:363
-msgid "FIO"
-msgstr "ФИО"
-
-#: onlinerecord.module:394
-msgid "time"
-msgstr "Время"
-
-#: onlinerecord.module:419
-msgid "Make an appointment"
-msgstr "Записаться на прием"
-
-#: onlinerecord.module:444
-msgid "Select service"
-msgstr "Выберите услугу"
-
-#: onlinerecord.module:453
-msgid "Choose date"
-msgstr "Выберите дату для записи"
-
-#: onlinerecord.module:465
-msgid "Next >>"
-msgstr "Далее"
-
-#: onlinerecord.module:482
-msgid "Please enter your FIO."
-msgstr "Пожалуйста, введите своё ФИО"
-
-#: onlinerecord.module:496
-msgid "Please choose service."
-msgstr "Пожалуйста, выберите услугу"
-
-#: onlinerecord.module:503
-msgid "Please select date correctly. You can choose only !datef or later"
-msgstr ""
-"Укажите корректную дату. Вы можете "
-"выбрать !datef или более позднее число"
-
-#: onlinerecord.module:566
-msgid "You've been saved on time @time. @planh, your number is @num"
-msgstr ""
-"Вы записаны на @time, @planh. ОБЯЗАТЕЛЬНО "
-"запомните ваш номер: @num"
-
-#: onlinerecord.module:612
-msgid "@deptname , @orgname"
-msgstr "@deptname , @orgname"
-
-#: onlinerecord.module:5
-msgid "administer onlinerecord"
-msgstr "Управлять электронной очередью"
-
-#: onlinerecord.module:5
-msgid "access onlinerecord"
+#: onlinerecord.module:369
+msgid "View plan records by user"
 msgstr ""
 
 #: onlinerecord.info:0
