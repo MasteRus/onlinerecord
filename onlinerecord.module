@@ -357,7 +357,7 @@ function onlinerecord_menu()
 
 
     /////////////////CHOOSE Service->Plans->Exceptions->records/////////////////
-    $items['onlinerecord'] = array(
+    $items['onlinerecord-old'] = array(
       'title' => 'Onlinerecord',
       'page callback' => 'drupal_get_form',
       'page arguments' => array('onlinerecord_choose'),
@@ -380,7 +380,7 @@ function onlinerecord_menu()
       'type' => MENU_CALLBACK,
     );
 
-    $items['onlinerecord-wizard'] = array(
+    $items['onlinerecord'] = array(
       'title' => 'Onlinerecord',
       //'page callback' => 'drupal_get_form',
       //'page arguments' => array('onlinerecord_wizard'),
